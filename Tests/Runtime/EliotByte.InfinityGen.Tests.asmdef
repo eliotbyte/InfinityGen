@@ -1,0 +1,20 @@
+{
+    "name": "EliotByte.InfinityGen.Tests",
+    "rootNamespace": "",
+    "references": [
+        "GUID:6c6beebbb1ac6354bb70fca7fb2d1cab"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
