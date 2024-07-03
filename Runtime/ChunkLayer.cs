@@ -4,37 +4,41 @@ using UnityEngine;
 
 namespace EliotByte.InfinityGen
 {
-	public struct LayerDependency
+	public class ChunkLayer<TChunk> : IChunkLayer where TChunk : IChunk
 	{
-		public IChunkLayer Layer;
-		public Vector2 Padding;
-	}
+		public struct ChunkHandle
+		{
+			public TChunk Chunk;
+			public HashSet<object> LoadRequests;
 
-	public class ChunkLayer<T> : IChunkLayer
-	{
+			public ChunkHandle(TChunk chunk, HashSet<object> loadRequests)
+			{
+				Chunk = chunk;
+				LoadRequests = loadRequests;
+			}
+		}
+
+		private readonly IChunkFactory<TChunk> _chunkFactory;
 		private readonly IRandomFactory _randomFactory;
-		private readonly HashSet<LayerDependency> _dependencies = new();
-		private Dictionary<Vector2Int, Chunk<T>> _chunks = new();
-		private HashSet<Chunk<T>> _chunksToProcess = new();
+		private readonly LayerRegistry _layerRegistry;
+		private readonly Dictionary<Vector2Int, ChunkHandle> _chunkHandles = new();
+		private readonly HashSet<Vector2Int> _positionsToProcess = new();
 
 		public int ChunkSize { get; }
 
-		public ChunkLayer(int chunkSize, IRandomFactory randomFactory)
+		public ChunkLayer(int chunkSize, IChunkFactory<TChunk> chunkFactory, IRandomFactory randomFactory, LayerRegistry layerRegistry)
 		{
+			_chunkFactory = chunkFactory;
 			_randomFactory = randomFactory;
+			_layerRegistry = layerRegistry;
 			ChunkSize = chunkSize;
-		}
-
-		public void AddDependency(LayerDependency dependency)
-		{
-			_dependencies.Add(dependency);
 		}
 
 		public bool IsLoaded(Circle circle)
 		{
 			foreach (Vector2Int position in GetChunksInRadius(ChunkSize, circle.Position, circle.Radius))
 			{
-				if (!_chunks.TryGetValue(position, out var chunk) || chunk.Status != ChunkStatus.Loaded)
+				if (!IsLoaded(position))
 					return false;
 			}
 
@@ -45,26 +49,23 @@ namespace EliotByte.InfinityGen
 		{
 			foreach (Vector2Int position in GetChunksInArea(ChunkSize, area))
 			{
-				if (!_chunks.TryGetValue(position, out var chunk) || chunk.Status != ChunkStatus.Loaded)
+				if (!IsLoaded(position))
 					return false;
 			}
 
 			return true;
 		}
 
+		public bool IsLoaded(Vector2Int position)
+		{
+			return _chunkHandles.TryGetValue(position, out var handle) && handle.Chunk.Status == LoadStatus.Loaded;
+		}
+
 		public void RequestLoad(object requestSource, Circle circle)
 		{
 			foreach (Vector2Int position in GetChunksInRadius(ChunkSize, circle.Position, circle.Radius))
 			{
-				if (!_chunks.TryGetValue(position, out var chunk))
-				{
-					chunk = new Chunk<T>(new ChunkPosition(position, ChunkSize));
-					_chunks.Add(position, chunk);
-				}
-
-				// TODO: Don't process chunk if it is loaded
-				chunk.AddLoadRequest(requestSource);
-				_chunksToProcess.Add(chunk);
+				RequestLoad(requestSource, position);
 			}
 		}
 
@@ -72,15 +73,7 @@ namespace EliotByte.InfinityGen
 		{
 			foreach (Vector2Int position in GetChunksInArea(ChunkSize, area))
 			{
-				if (!_chunks.TryGetValue(position, out var chunk))
-				{
-					chunk = new Chunk<T>(new ChunkPosition(position, ChunkSize));
-					_chunks.Add(position, chunk);
-				}
-
-				// TODO: Don't process chunk if it is loaded
-				chunk.AddLoadRequest(requestSource);
-				_chunksToProcess.Add(chunk);
+				RequestLoad(requestSource, position);
 			}
 		}
 
@@ -88,13 +81,7 @@ namespace EliotByte.InfinityGen
 		{
 			foreach (Vector2Int position in GetChunksInRadius(ChunkSize, circle.Position, circle.Radius))
 			{
-				if (!_chunks.TryGetValue(position, out var chunk))
-				{
-					continue;
-				}
-
-				chunk.RemoveLoadRequest(requestSource);
-				_chunksToProcess.Add(chunk);
+				RequestUnload(requestSource, position);
 			}
 		}
 
@@ -102,79 +89,93 @@ namespace EliotByte.InfinityGen
 		{
 			foreach (Vector2Int position in GetChunksInArea(ChunkSize, area))
 			{
-				if (!_chunks.TryGetValue(position, out var chunk))
-				{
-					continue;
-				}
+				RequestUnload(requestSource, position);
+			}
+		}
+		
+		public void RequestLoad(object requestSource, Vector2Int position)
+		{
+			if (!_chunkHandles.TryGetValue(position, out var handle))
+			{
+				handle = new(_chunkFactory.Create(new ChunkPosition(position, ChunkSize), _layerRegistry), new HashSet<object>());
+				_chunkHandles.Add(position, handle);
+			}
 
-				chunk.RemoveLoadRequest(requestSource);
-				_chunksToProcess.Add(chunk);
+			// TODO: Don't process chunk if it is loaded
+			handle.LoadRequests.Add(requestSource);
+			_positionsToProcess.Add(position);
+		}
+
+		public void RequestUnload(object requestSource, Vector2Int position)
+		{
+			if (!_chunkHandles.TryGetValue(position, out var handle))
+			{
+				return;
+			}
+
+			handle.LoadRequests.Remove(requestSource);
+			_positionsToProcess.Add(position);
+		}
+
+		public IEnumerable<TChunk> GetChunks(Rectangle area)
+		{
+			foreach (Vector2Int position in GetChunksInArea(ChunkSize, area))
+			{
+				yield return _chunkHandles[position].Chunk;
 			}
 		}
 
-		private readonly List<Chunk<T>> _processedChunksBuffer = new();
+		private readonly List<Vector2Int> _processedPositions = new();
 
 		public void ProcessRequests()
 		{
 			// TODO: Sort chunks by distance
-			foreach (var chunk in _chunksToProcess)
+			foreach (var position in _positionsToProcess)
 			{
-				if (chunk.Status == ChunkStatus.Processing)
+				var handle = _chunkHandles[position];
+				
+				if (handle.Chunk.Status == LoadStatus.Processing)
 				{
 					continue;
 				}
 
-				bool needLoad = chunk.LoadRequests > 0;
-				bool isLoaded = chunk.Status == ChunkStatus.Loaded;
+				bool needLoad = handle.LoadRequests.Count > 0;
+				bool isLoaded = handle.Chunk.Status == LoadStatus.Loaded;
 
 				if (needLoad && isLoaded)
 				{
-					_processedChunksBuffer.Add(chunk);
+					_processedPositions.Add(position);
 					continue;
 				}
 
 				if (needLoad)
 				{
-					bool hasUnloadedDependencies = false;
-					foreach (var dependency in _dependencies)
+					if (!handle.Chunk.IsDependenciesLoaded())
 					{
-						// TODO: Add padding
-						var loadArea = chunk.Position.Area;
-						if (!dependency.Layer.IsLoaded(loadArea))
-						{
-							hasUnloadedDependencies = true;
-							dependency.Layer.RequestLoad(chunk, loadArea);
-						}
+						handle.Chunk.LoadDependencies();
 					}
-
-					if (!hasUnloadedDependencies)
-					{
-						chunk.Load(_randomFactory);
-					}
+					
+					handle.Chunk.Load(_randomFactory.WorldPointRandom(position));
 				}
 				else
 				{
-					chunk.Unload();
-
-					foreach (var dependency in _dependencies)
-					{
-						// TODO: Add padding
-						var loadArea = chunk.Position.Area;
-						dependency.Layer.RequestUnload(chunk, loadArea);
-					}
+					handle.Chunk.Unload();
+					handle.Chunk.UnloadDependencies();
 				}
 			}
 
-			foreach (var chunk in _processedChunksBuffer)
+			foreach (var position in _processedPositions)
 			{
-				_chunksToProcess.Remove(chunk);
+				_positionsToProcess.Remove(position);
+
 				// TODO: Add chunk pooling
-				if (chunk.Status == ChunkStatus.Unloaded)
+				if (_chunkHandles[position].Chunk.Status == LoadStatus.Unloaded)
 				{
-					_chunks.Remove(chunk.Position.Position);
+					_chunkHandles.Remove(position);
 				}
 			}
-			_processedChunksBuffer.Clear();
+
+			_processedPositions.Clear();
 		}
 
 		private static Vector2Int[] GetChunksInArea(int chunkSize, Rectangle area)

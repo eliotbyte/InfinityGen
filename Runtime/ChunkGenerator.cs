@@ -5,18 +5,18 @@ namespace EliotByte.InfinityGen
 {
     public class ChunkGenerator
     {
-        private readonly IRandomFactory _random;
-        private readonly Dictionary<Type, IChunkLayer> _layersByChunkType = new();
         private readonly HashSet<IChunkViewport> _viewports = new();
 
         public ChunkGenerator(IRandomFactory random)
         {
-            _random = random;
+            LayerRegistry = new LayerRegistry(random);
         }
 
-        public void RegisterLayer<TChunk>(int chunkSize)
+        public LayerRegistry LayerRegistry { get; }
+
+        public void RegisterLayer<TChunk>(int chunkSize, IChunkFactory<TChunk> chunkFactory) where TChunk : IChunk
         {
-            _layersByChunkType.Add(typeof(TChunk), new ChunkLayer<TChunk>(chunkSize, _random));
+            LayerRegistry.Register(chunkSize, chunkFactory);
         }
 
         public void RegisterViewport(IChunkViewport viewport)
@@ -28,10 +28,11 @@ namespace EliotByte.InfinityGen
         {
             foreach (IChunkViewport viewport in _viewports)
             {
+                // TODO: Request unload when viewport is not acitve
                 if (!viewport.IsActive)
                     continue;
 
-                foreach (IChunkLayer layer in _layersByChunkType.Values)
+                foreach (IChunkLayer layer in LayerRegistry.AllLayers)
                 {
                     layer.RequestLoad(viewport, new Circle(viewport.Position, viewport.Radius));
                     layer.ProcessRequests();
