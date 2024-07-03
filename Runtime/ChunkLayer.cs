@@ -4,144 +4,236 @@ using UnityEngine;
 
 namespace EliotByte.InfinityGen
 {
-    public class ChunkLayer<T> : IChunkLayer where T : IChunkEntity
-    {
-        public int ChunkSize { get; }
-        public Type Type => typeof(T);
+	public struct LayerDependency
+	{
+		public IChunkLayer Layer;
+		public Vector2 Padding;
+	}
 
-        private Dictionary<IChunkLayer, int> _dependencies = new();
-        private Dictionary<Vector2Int, IChunk> _chunks = new();
-        private IChunkEntityGenerator<T> _generator;
+	public class ChunkLayer<T> : IChunkLayer
+	{
+		private readonly IRandomFactory _randomFactory;
+		private readonly HashSet<LayerDependency> _dependencies = new();
+		private Dictionary<Vector2Int, Chunk<T>> _chunks = new();
+		private HashSet<Chunk<T>> _chunksToProcess = new();
 
-        public ChunkLayer(int chunkSize, IChunkEntityGenerator<T> generator)
-        {
-            ChunkSize = chunkSize;
-            _generator = generator;
-        }
+		public int ChunkSize { get; }
 
-        public void AddDependency(IChunkLayer dependentLayer, int padding)
-        {
-            _dependencies[dependentLayer] = padding;
-        }
+		public ChunkLayer(int chunkSize, IRandomFactory randomFactory)
+		{
+			_randomFactory = randomFactory;
+			ChunkSize = chunkSize;
+		}
 
-        public IEnumerable<IChunk> GetChunksForRendering(Circle userArea)
-        {
-            HashSet<IChunk> chunksForRendering = new();
-            Vector2Int[] chunkPositions = GetChunksInRadius(ChunkSize, userArea.Position, userArea.Radius);
+		public void AddDependency(LayerDependency dependency)
+		{
+			_dependencies.Add(dependency);
+		}
 
-            foreach (Vector2Int position in chunkPositions)
-            {
-                if (!_chunks.TryGetValue(position, out var chunk))
-                    chunk = CreateChunk(position);
+		public bool IsLoaded(Circle circle)
+		{
+			foreach (Vector2Int position in GetChunksInRadius(ChunkSize, circle.Position, circle.Radius))
+			{
+				if (!_chunks.TryGetValue(position, out var chunk) || chunk.Status != ChunkStatus.Loaded)
+					return false;
+			}
 
-                if (chunk.DependenciesLoaded())
-                    chunksForRendering.Add(chunk);
-            }
+			return true;
+		}
 
-            return chunksForRendering;
-        }
+		public bool IsLoaded(Rectangle area)
+		{
+			foreach (Vector2Int position in GetChunksInArea(ChunkSize, area))
+			{
+				if (!_chunks.TryGetValue(position, out var chunk) || chunk.Status != ChunkStatus.Loaded)
+					return false;
+			}
 
-        public IEnumerable<IChunk> GetChunksInArea(Rectangle area)
-        {
-            HashSet<IChunk> chunks = new();
-            Vector2Int[] chunkPositions = GetChunksInArea(ChunkSize, area);
+			return true;
+		}
 
-            foreach (Vector2Int position in chunkPositions)
-            {
-                if (!_chunks.TryGetValue(position, out var chunk))
-                    chunk = CreateChunk(position);
+		public void RequestLoad(object requestSource, Circle circle)
+		{
+			foreach (Vector2Int position in GetChunksInRadius(ChunkSize, circle.Position, circle.Radius))
+			{
+				if (!_chunks.TryGetValue(position, out var chunk))
+				{
+					chunk = new Chunk<T>(new ChunkPosition(position, ChunkSize));
+					_chunks.Add(position, chunk);
+				}
 
-                chunks.Add(chunk);
-            }
+				chunk.AddLoadRequest(requestSource);
+				_chunksToProcess.Add(chunk);
+			}
+		}
 
-            return chunks;
-        }
+		public void RequestLoad(object requestSource, Rectangle area)
+		{
+			foreach (Vector2Int position in GetChunksInArea(ChunkSize, area))
+			{
+				if (!_chunks.TryGetValue(position, out var chunk))
+				{
+					chunk = new Chunk<T>(new ChunkPosition(position, ChunkSize));
+					_chunks.Add(position, chunk);
+				}
 
-        private IChunk CreateChunk(Vector2Int position)
-        {
-            if (_dependencies.Count == 0)
-            {
-                IChunk newChunk = new Chunk<T>(new ChunkPosition(position, ChunkSize), _generator);
-                _chunks[position] = newChunk;
-                return newChunk;
-            }
-            else
-            {
-                List<ChunkDependencies> dependencies = new();
-                foreach ((IChunkLayer layer, int padding) in _dependencies)
-                {
-                    IEnumerable<IChunk> chunks = layer.GetChunksInArea(new Rectangle(
-                        position.x * ChunkSize - padding,
-                        position.y * ChunkSize - padding,
-                        ChunkSize + padding * 2));
-                    ChunkDependencies dependency = new(layer.Type, chunks, padding);
-                    dependencies.Add(dependency);
-                }
+				chunk.AddLoadRequest(requestSource);
+				_chunksToProcess.Add(chunk);
+			}
+		}
 
-                IChunk newChunk = new Chunk<T>(new ChunkPosition(position, ChunkSize), _generator, dependencies);
-                _chunks[position] = newChunk;
-                return newChunk;
-            }
-        }
+		public void RequestUnload(object requestSource, Circle circle)
+		{
+			foreach (Vector2Int position in GetChunksInRadius(ChunkSize, circle.Position, circle.Radius))
+			{
+				if (!_chunks.TryGetValue(position, out var chunk))
+				{
+					continue;
+				}
 
-        private static Vector2Int[] GetChunksInArea(int chunkSize, Rectangle area)
-        {
-            List<Vector2Int> chunkPositions = new();
+				chunk.RemoveLoadRequest(requestSource);
+				_chunksToProcess.Add(chunk);
+			}
+		}
 
-            float xEnd = area.X + area.Width;
-            float yEnd = area.Y + area.Height;
+		public void RequestUnload(object requestSource, Rectangle area)
+		{
+			foreach (Vector2Int position in GetChunksInArea(ChunkSize, area))
+			{
+				if (!_chunks.TryGetValue(position, out var chunk))
+				{
+					continue;
+				}
 
-            int minChunkX = Mathf.FloorToInt(area.X / chunkSize);
-            int maxChunkX = Mathf.FloorToInt((xEnd - 1) / chunkSize);
-            int minChunkY = Mathf.FloorToInt(area.Y / chunkSize);
-            int maxChunkY = Mathf.FloorToInt((yEnd - 1) / chunkSize);
+				chunk.RemoveLoadRequest(requestSource);
+				_chunksToProcess.Add(chunk);
+			}
+		}
 
-            for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++)
-                for (int chunkY = minChunkY; chunkY <= maxChunkY; chunkY++)
-                    chunkPositions.Add(new Vector2Int(chunkX, chunkY));
+		private readonly HashSet<Chunk<T>> _processedChunksBuffer = new();
 
-            return chunkPositions.ToArray();
-        }
+		public void ProcessRequests()
+		{
+			// TODO: Sort chunks by distance
+			foreach (var chunk in _chunksToProcess)
+			{
+				if (chunk.Status == ChunkStatus.Processing)
+				{
+					continue;
+				}
 
-        private static Vector2Int[] GetChunksInRadius(int chunkSize, Vector2 userPosition, float radius)
-        {
-            float playerX = userPosition.x;
-            float playerY = userPosition.y;
-            List<Vector2Int> chunks = new();
+				bool needLoad = chunk.LoadRequests > 0;
+				bool isLoaded = chunk.Status == ChunkStatus.Loaded;
 
-            int minChunkX = Mathf.FloorToInt((playerX - radius) / chunkSize);
-            int maxChunkX = Mathf.FloorToInt((playerX + radius) / chunkSize);
-            int minChunkY = Mathf.FloorToInt((playerY - radius) / chunkSize);
-            int maxChunkY = Mathf.FloorToInt((playerY + radius) / chunkSize);
+				if (needLoad && isLoaded)
+				{
+					_processedChunksBuffer.Add(chunk);
+					continue;
+				}
 
-            for (int x = minChunkX; x <= maxChunkX; x++)
-            for (int y = minChunkY; y <= maxChunkY; y++)
-                if (IsChunkInRadius(x, y, chunkSize, userPosition, radius))
-                    chunks.Add(new Vector2Int(x, y));
+				if (needLoad)
+				{
+					bool hasUnloadedDependencies = false;
+					foreach (var dependency in _dependencies)
+					{
+						// TODO: Add padding
+						var loadArea = chunk.Position.Area;
+						if (!dependency.Layer.IsLoaded(loadArea))
+						{
+							hasUnloadedDependencies = true;
+							dependency.Layer.RequestLoad(chunk, loadArea);
+						}
+					}
 
-            return chunks.ToArray();
-        }
+					if (!hasUnloadedDependencies)
+					{
+						chunk.Load(_randomFactory);
+					}
+				}
+				else
+				{
+					chunk.Unload();
 
-        private static bool IsChunkInRadius(int chunkX, int chunkY, int chunkSize, Vector2 userPosition, float radius)
-        {
-            Vector2[] chunkCorners = {
-                new(chunkX * chunkSize, chunkY * chunkSize),
-                new((chunkX + 1) * chunkSize, chunkY * chunkSize),
-                new(chunkX * chunkSize, (chunkY + 1) * chunkSize),
-                new((chunkX + 1) * chunkSize, (chunkY + 1) * chunkSize)
-            };
+					foreach (var dependency in _dependencies)
+					{
+						// TODO: Add padding
+						var loadArea = chunk.Position.Area;
+						dependency.Layer.RequestUnload(chunk, loadArea);
+					}
+				}
+			}
 
-            foreach (Vector2 corner in chunkCorners)
-                if (Vector2.Distance(corner, userPosition) <= radius)
-                    return true;
+			foreach (var chunk in _processedChunksBuffer)
+			{
+				_chunksToProcess.Remove(chunk);
+				// TODO: Add chunk pooling
+				if (chunk.Status == ChunkStatus.Unloaded)
+				{
+					_chunks.Remove(chunk.Position.Position);
+				}
+			}
+			_processedChunksBuffer.Clear();
+		}
 
-            float chunkXMin = chunkX * chunkSize;
-            float chunkXMax = (chunkX + 1) * chunkSize;
-            float chunkYMin = chunkY * chunkSize;
-            float chunkYMax = (chunkY + 1) * chunkSize;
+		private static Vector2Int[] GetChunksInArea(int chunkSize, Rectangle area)
+		{
+			List<Vector2Int> chunkPositions = new();
 
-            return (chunkXMin <= userPosition.x && userPosition.x <= chunkXMax &&
-                    chunkYMin <= userPosition.y && userPosition.y <= chunkYMax);
-        }
-    }
+			float xEnd = area.X + area.Width;
+			float yEnd = area.Y + area.Height;
+
+			int minChunkX = Mathf.FloorToInt(area.X / chunkSize);
+			int maxChunkX = Mathf.FloorToInt((xEnd - 1) / chunkSize);
+			int minChunkY = Mathf.FloorToInt(area.Y / chunkSize);
+			int maxChunkY = Mathf.FloorToInt((yEnd - 1) / chunkSize);
+
+			for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++)
+			for (int chunkY = minChunkY; chunkY <= maxChunkY; chunkY++)
+				chunkPositions.Add(new Vector2Int(chunkX, chunkY));
+
+			return chunkPositions.ToArray();
+		}
+
+		private static Vector2Int[] GetChunksInRadius(int chunkSize, Vector2 userPosition, float radius)
+		{
+			float playerX = userPosition.x;
+			float playerY = userPosition.y;
+			List<Vector2Int> chunks = new();
+
+			int minChunkX = Mathf.FloorToInt((playerX - radius) / chunkSize);
+			int maxChunkX = Mathf.FloorToInt((playerX + radius) / chunkSize);
+			int minChunkY = Mathf.FloorToInt((playerY - radius) / chunkSize);
+			int maxChunkY = Mathf.FloorToInt((playerY + radius) / chunkSize);
+
+			for (int x = minChunkX; x <= maxChunkX; x++)
+			for (int y = minChunkY; y <= maxChunkY; y++)
+				if (IsChunkInRadius(x, y, chunkSize, userPosition, radius))
+					chunks.Add(new Vector2Int(x, y));
+
+			return chunks.ToArray();
+		}
+
+		private static bool IsChunkInRadius(int chunkX, int chunkY, int chunkSize, Vector2 userPosition, float radius)
+		{
+			Vector2[] chunkCorners =
+			{
+				new(chunkX * chunkSize, chunkY * chunkSize),
+				new((chunkX + 1) * chunkSize, chunkY * chunkSize),
+				new(chunkX * chunkSize, (chunkY + 1) * chunkSize),
+				new((chunkX + 1) * chunkSize, (chunkY + 1) * chunkSize)
+			};
+
+			foreach (Vector2 corner in chunkCorners)
+				if (Vector2.Distance(corner, userPosition) <= radius)
+					return true;
+
+			float chunkXMin = chunkX * chunkSize;
+			float chunkXMax = (chunkX + 1) * chunkSize;
+			float chunkYMin = chunkY * chunkSize;
+			float chunkYMax = (chunkY + 1) * chunkSize;
+
+			return (chunkXMin <= userPosition.x && userPosition.x <= chunkXMax &&
+			        chunkYMin <= userPosition.y && userPosition.y <= chunkYMax);
+		}
+	}
 }

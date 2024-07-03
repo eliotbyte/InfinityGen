@@ -1,13 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace EliotByte.InfinityGen
+﻿namespace EliotByte.InfinityGen
 {
-    public interface IChunkLayer
-    {
-        Type Type { get; }
-        void AddDependency(IChunkLayer dependentLayer, int padding);
-        IEnumerable<IChunk> GetChunksForRendering(Circle userArea);
-        IEnumerable<IChunk> GetChunksInArea(Rectangle area);
-    }
+	public interface IChunkLayer
+	{
+		void AddDependency(LayerDependency dependency);
+
+		bool IsLoaded(Circle circle);
+		bool IsLoaded(Rectangle area);
+
+		void RequestLoad(object requestSource, Circle circle);
+		void RequestLoad(object requestSource, Rectangle area);
+
+		void RequestUnload(object requestSource, Circle circle);
+		void RequestUnload(object requestSource, Rectangle area);
+
+		void ProcessRequests();
+	}
 }

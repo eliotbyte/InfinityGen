@@ -1,15 +1,24 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-
-namespace EliotByte.InfinityGen
+﻿namespace EliotByte.InfinityGen
 {
     public interface IChunk
     {
-        ChunkPosition Position { get; }
-        bool Loaded { get; }
-        void Load(IRandomFactory random);
+        ChunkStatus Status { get; }
+
+        void Load(IRandomFactory randomFactory);
+
         void Unload();
-        bool DependenciesLoaded();
-        IList GetEntities();
+    }
+
+    public enum ChunkStatus
+    {
+        Unloaded,
+        Processing,
+        Loaded
+    }
+    
+    public enum Request
+    {
+        Unload,
+        Load
     }
 }

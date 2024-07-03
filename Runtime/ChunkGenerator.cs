@@ -1,21 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace EliotByte.InfinityGen
 {
     public class ChunkGenerator
     {
-        private readonly HashSet<IChunkLayer> _layers = new();
+        private readonly IRandomFactory _random;
+        private readonly Dictionary<Type, IChunkLayer> _layersByChunkType = new();
         private readonly HashSet<IChunkViewport> _viewports = new();
-        private readonly ChunkRenderPipeline _renderPipeline;
 
         public ChunkGenerator(IRandomFactory random)
         {
-            _renderPipeline = new ChunkRenderPipeline(random);
+            _random = random;
         }
 
-        public void RegisterLayer(IChunkLayer layer)
+        public void RegisterLayer<TChunk>(int chunkSize)
         {
-            _layers.Add(layer);
+            _layersByChunkType.Add(typeof(TChunk), new ChunkLayer<TChunk>(chunkSize, _random));
         }
 
         public void RegisterViewport(IChunkViewport viewport)
@@ -23,29 +24,18 @@ namespace EliotByte.InfinityGen
             _viewports.Add(viewport);
         }
 
-        public void RegisterDependency(IChunkLayer layer, IChunkLayer dependency, int padding)
-        {
-            layer.AddDependency(dependency, padding);
-        }
-
         public void Generate()
         {
-            if (_renderPipeline.IsRendering)
-                return;
-
             foreach (IChunkViewport viewport in _viewports)
             {
                 if (!viewport.IsActive)
                     continue;
 
-                foreach (IChunkLayer layer in _layers)
+                foreach (IChunkLayer layer in _layersByChunkType.Values)
                 {
-                    IEnumerable<IChunk> chunksForRendering = layer.GetChunksForRendering(new Circle(viewport.Position, viewport.Radius));
-                    _renderPipeline.AddChunksToQueue(chunksForRendering, viewport);
+                    layer.ProcessRequests();
                 }
             }
-
-            _renderPipeline.Render();
         }
     }
 }
