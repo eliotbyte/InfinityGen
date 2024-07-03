@@ -154,8 +154,10 @@ namespace EliotByte.InfinityGen
 					{
 						handle.Chunk.LoadDependencies();
 					}
-					
-					handle.Chunk.Load(_randomFactory.WorldPointRandom(position));
+					else
+					{
+						handle.Chunk.Load(_randomFactory.WorldPointRandom(position));
+					}
 				}
 				else
 				{
