@@ -62,6 +62,7 @@ namespace EliotByte.InfinityGen
 					_chunks.Add(position, chunk);
 				}
 
+				// TODO: Don't process chunk if it is loaded
 				chunk.AddLoadRequest(requestSource);
 				_chunksToProcess.Add(chunk);
 			}
@@ -77,6 +78,7 @@ namespace EliotByte.InfinityGen
 					_chunks.Add(position, chunk);
 				}
 
+				// TODO: Don't process chunk if it is loaded
 				chunk.AddLoadRequest(requestSource);
 				_chunksToProcess.Add(chunk);
 			}
@@ -110,7 +112,7 @@ namespace EliotByte.InfinityGen
 			}
 		}
 
-		private readonly HashSet<Chunk<T>> _processedChunksBuffer = new();
+		private readonly List<Chunk<T>> _processedChunksBuffer = new();
 
 		public void ProcessRequests()
 		{
@@ -177,6 +179,7 @@ namespace EliotByte.InfinityGen
 
 		private static Vector2Int[] GetChunksInArea(int chunkSize, Rectangle area)
 		{
+			// TODO: Add caching
 			List<Vector2Int> chunkPositions = new();
 
 			float xEnd = area.X + area.Width;
@@ -198,6 +201,8 @@ namespace EliotByte.InfinityGen
 		{
 			float playerX = userPosition.x;
 			float playerY = userPosition.y;
+			
+			// TODO: Add caching
 			List<Vector2Int> chunks = new();
 
 			int minChunkX = Mathf.FloorToInt((playerX - radius) / chunkSize);
