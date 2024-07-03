@@ -33,6 +33,7 @@ namespace EliotByte.InfinityGen
 
                 foreach (IChunkLayer layer in _layersByChunkType.Values)
                 {
+                    layer.RequestLoad(viewport, new Circle(viewport.Position, viewport.Radius));
                     layer.ProcessRequests();
                 }
             }
