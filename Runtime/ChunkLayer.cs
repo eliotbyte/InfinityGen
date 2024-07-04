@@ -150,9 +150,9 @@ namespace EliotByte.InfinityGen
 
 				if (needLoad)
 				{
-					if (!handle.Chunk.Dependency.IsLoaded())
+					if (!handle.Chunk.Dependency.IsLoaded(_layerRegistry))
 					{
-						handle.Chunk.Dependency.Load();
+						handle.Chunk.Dependency.Load(_layerRegistry);
 					}
 					else
 					{
@@ -162,7 +162,7 @@ namespace EliotByte.InfinityGen
 				else
 				{
 					handle.Chunk.Unload();
-					handle.Chunk.Dependency.Unload();
+					handle.Chunk.Dependency.Unload(_layerRegistry);
 				}
 			}
 

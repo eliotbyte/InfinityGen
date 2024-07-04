@@ -2,8 +2,8 @@
 {
 	public interface IDependency
 	{
-		bool IsLoaded();
-		void Load();
-		void Unload();
+		bool IsLoaded(LayerRegistry layerRegistry);
+		void Load(LayerRegistry layerRegistry);
+		void Unload(LayerRegistry layerRegistry);
 	}
 }

@@ -4,10 +4,10 @@
 	{
 		public static IDependency Instance { get; } = new EmptyDependency();
 
-		public bool IsLoaded() => true;
+		public bool IsLoaded(LayerRegistry layerRegistry) => true;
 
-		public void Load() { }
+		public void Load(LayerRegistry layerRegistry) { }
 
-		public void Unload() { }
+		public void Unload(LayerRegistry layerRegistry) { }
 	}
 }

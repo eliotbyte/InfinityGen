@@ -2,28 +2,26 @@
 {
 	public class CircleDependency<TChunk> : IDependency where TChunk : IChunk
 	{
-		private readonly IChunkLayer _layer;
 		private readonly Circle _circle;
 
 		public CircleDependency(LayerRegistry layerRegistry, Circle circle)
 		{
-			_layer = layerRegistry.Get<TChunk>();
 			_circle = circle;
 		}
 
-		public bool IsLoaded()
+		public bool IsLoaded(LayerRegistry layerRegistry)
 		{
-			return _layer.IsLoaded(_circle);
+			return layerRegistry.Get<TChunk>().IsLoaded(_circle);
 		}
 
-		public void Load()
+		public void Load(LayerRegistry layerRegistry)
 		{
-			_layer.RequestLoad(this, _circle);
+			layerRegistry.Get<TChunk>().RequestLoad(this, _circle);
 		}
 
-		public void Unload()
+		public void Unload(LayerRegistry layerRegistry)
 		{
-			_layer.RequestUnload(this, _circle);
+			layerRegistry.Get<TChunk>().RequestUnload(this, _circle);
 		}
 	}
 }

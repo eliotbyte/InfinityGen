@@ -21,11 +21,11 @@ namespace EliotByte.InfinityGen
 			_dependencies.Add(dependency);
 		}
 
-		public bool IsLoaded()
+		public bool IsLoaded(LayerRegistry layerRegistry)
 		{
 			foreach (var dependency in _dependencies)
 			{
-				if (!dependency.IsLoaded())
+				if (!dependency.IsLoaded(layerRegistry))
 				{
 					return false;
 				}
@@ -33,19 +33,19 @@ namespace EliotByte.InfinityGen
 			return true;
 		}
 
-		public void Load()
+		public void Load(LayerRegistry layerRegistry)
 		{
 			foreach (var dependency in _dependencies)
 			{
-				dependency.Load();
+				dependency.Load(layerRegistry);
 			}
 		}
 
-		public void Unload()
+		public void Unload(LayerRegistry layerRegistry)
 		{
 			foreach (var dependency in _dependencies)
 			{
-				dependency.Unload();
+				dependency.Unload(layerRegistry);
 			}
 		}
 	}

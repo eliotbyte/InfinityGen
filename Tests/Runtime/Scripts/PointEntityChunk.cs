@@ -16,7 +16,7 @@ namespace EliotByte.InfinityGen.Tests
 			_layerRegistry = layerRegistry;
 			_count = count;
 
-			Dependency = new AreaDependency<FloatEntityChunk>(layerRegistry, _chunkPosition.Area);
+			Dependency = new AreaDependency<FloatEntityChunk>(_chunkPosition.Area);
 		}
 
 		public LoadStatus Status { get; private set; }
