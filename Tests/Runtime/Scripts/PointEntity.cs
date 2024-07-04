@@ -1,14 +1,14 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace EliotByte.InfinityGen.Tests
 {
-    public class PointEntity : IChunkEntity
-    {
-        public PointEntity(Vector2 position)
-        {
-            Position = position;
-        }
+	public struct PointEntity
+	{
+		public PointEntity(Vector2 position)
+		{
+			Position = position;
+		}
 
-        public Vector2 Position { get; }
-    }
+		public Vector2 Position { get; }
+	}
 }

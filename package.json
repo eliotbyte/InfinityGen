@@ -1,0 +1,11 @@
+{
+  "name": "EliotByte.InfinityGen",
+  "version": "0.2.0",
+  "displayName": "InfinityGen",
+  "unity": "2021.2",
+  "description": "Procedural layerer generator.",
+  "collaborators": [
+    "https://github.com/eliotbyte",
+    "https://github.com/nilpunch"
+  ]
+}

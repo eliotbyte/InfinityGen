@@ -1,51 +1,43 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace EliotByte.InfinityGen
 {
-    public class ChunkGenerator
-    {
-        private readonly HashSet<IChunkLayer> _layers = new();
-        private readonly HashSet<IChunkViewport> _viewports = new();
-        private readonly ChunkRenderPipeline _renderPipeline;
+	public class ChunkGenerator
+	{
+		private readonly HashSet<IChunkViewport> _viewports = new();
 
-        public ChunkGenerator(IRandomFactory random)
-        {
-            _renderPipeline = new ChunkRenderPipeline(random);
-        }
+		public ChunkGenerator(IRandomFactory random)
+		{
+			LayerRegistry = new LayerRegistry(random);
+		}
 
-        public void RegisterLayer(IChunkLayer layer)
-        {
-            _layers.Add(layer);
-        }
+		public LayerRegistry LayerRegistry { get; }
 
-        public void RegisterViewport(IChunkViewport viewport)
-        {
-            _viewports.Add(viewport);
-        }
+		public void RegisterLayer<TChunk>(int chunkSize, IChunkFactory<TChunk> chunkFactory) where TChunk : IChunk
+		{
+			LayerRegistry.Register(chunkSize, chunkFactory);
+		}
 
-        public void RegisterDependency(IChunkLayer layer, IChunkLayer dependency, int padding)
-        {
-            layer.AddDependency(dependency, padding);
-        }
+		public void RegisterViewport(IChunkViewport viewport)
+		{
+			_viewports.Add(viewport);
+		}
 
-        public void Generate()
-        {
-            if (_renderPipeline.IsRendering)
-                return;
+		public void Generate()
+		{
+			foreach (IChunkViewport viewport in _viewports)
+			{
+				// TODO: Request unload when viewport is not acitve
+				if (!viewport.IsActive)
+					continue;
 
-            foreach (IChunkViewport viewport in _viewports)
-            {
-                if (!viewport.IsActive)
-                    continue;
-
-                foreach (IChunkLayer layer in _layers)
-                {
-                    IEnumerable<IChunk> chunksForRendering = layer.GetChunksForRendering(new Circle(viewport.Position, viewport.Radius));
-                    _renderPipeline.AddChunksToQueue(chunksForRendering, viewport);
-                }
-            }
-
-            _renderPipeline.Render();
-        }
-    }
+				foreach (IChunkLayer layer in LayerRegistry.AllLayers)
+				{
+					layer.RequestLoad(viewport, new Circle(viewport.Position, viewport.Radius));
+					layer.ProcessRequests();
+				}
+			}
+		}
+	}
 }
