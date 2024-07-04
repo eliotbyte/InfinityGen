@@ -6,11 +6,7 @@ namespace EliotByte.InfinityGen
 	{
 		LoadStatus Status { get; }
 
-		bool IsDependenciesLoaded() => true;
-
-		void LoadDependencies() { }
-
-		void UnloadDependencies() { }
+		IDependency Dependency => EmptyDependency.Instance;
 
 		void Load(Random random);
 

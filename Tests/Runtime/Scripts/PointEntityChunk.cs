@@ -15,26 +15,15 @@ namespace EliotByte.InfinityGen.Tests
 			_chunkPosition = chunkPosition;
 			_layerRegistry = layerRegistry;
 			_count = count;
+
+			Dependency = new AreaDependency<FloatEntityChunk>(layerRegistry, _chunkPosition.Area);
 		}
 
 		public LoadStatus Status { get; private set; }
 
+		public IDependency Dependency { get; }
+
 		public List<PointEntity> Points { get; } = new List<PointEntity>();
-
-		public bool IsDependenciesLoaded()
-		{
-			return _layerRegistry.Get<FloatEntityChunk>().IsLoaded(_chunkPosition.Area);
-		}
-
-		public void LoadDependencies()
-		{
-			_layerRegistry.Get<FloatEntityChunk>().RequestLoad(this, _chunkPosition.Area);
-		}
-
-		public void UnloadDependencies()
-		{
-			_layerRegistry.Get<FloatEntityChunk>().RequestUnload(this, _chunkPosition.Area);
-		}
 
 		public void Load(System.Random random)
 		{
