@@ -30,7 +30,7 @@ namespace EliotByte.InfinityGen.Tests
 				float y = (float)(chunkArea.Y + random.NextDouble() * chunkArea.Height);
 				Entities.Add(new FloatEntity(new Vector2(x, y), (float)random.NextDouble()));
 			}
-			
+
 			Status = LoadStatus.Loaded;
 		}
 
@@ -51,7 +51,7 @@ namespace EliotByte.InfinityGen.Tests
 			{
 				_count = count;
 			}
-			
+
 			public FloatEntityChunk Create(ChunkPosition position, LayerRegistry layerRegistry)
 			{
 				return new FloatEntityChunk(position, _count);

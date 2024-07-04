@@ -92,7 +92,7 @@ namespace EliotByte.InfinityGen
 				RequestUnload(requestSource, position);
 			}
 		}
-		
+
 		public void RequestLoad(object requestSource, Vector2Int position)
 		{
 			if (!_chunkHandles.TryGetValue(position, out var handle))
@@ -133,7 +133,7 @@ namespace EliotByte.InfinityGen
 			foreach (var position in _positionsToProcess)
 			{
 				var handle = _chunkHandles[position];
-				
+
 				if (handle.Chunk.Status == LoadStatus.Processing)
 				{
 					continue;
@@ -204,7 +204,7 @@ namespace EliotByte.InfinityGen
 		{
 			float playerX = userPosition.x;
 			float playerY = userPosition.y;
-			
+
 			// TODO: Add caching
 			List<Vector2Int> chunks = new();
 

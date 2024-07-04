@@ -28,11 +28,11 @@ namespace EliotByte.InfinityGen.Tests
 		public void Load(System.Random random)
 		{
 			Status = LoadStatus.Processing;
-			
+
 			var floatsAround = _layerRegistry.Get<FloatEntityChunk>()
 				.GetChunks(_chunkPosition.Area)
 				.SelectMany(chunk => chunk.Entities).ToArray();
-			
+
 			var chunkArea = _chunkPosition.Area;
 			for (int i = 0; i < _count; i++)
 			{
@@ -40,7 +40,7 @@ namespace EliotByte.InfinityGen.Tests
 				float y = (float)(random.NextDouble() * chunkArea.Height) + chunkArea.Y;
 				Points.Add(new PointEntity(new Vector2(x, y)));
 			}
-			
+
 			Status = LoadStatus.Loaded;
 		}
 
@@ -61,7 +61,7 @@ namespace EliotByte.InfinityGen.Tests
 			{
 				_count = count;
 			}
-			
+
 			public PointEntityChunk Create(ChunkPosition position, LayerRegistry layerRegistry)
 			{
 				return new PointEntityChunk(position, layerRegistry, _count);

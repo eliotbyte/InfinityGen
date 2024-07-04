@@ -6,8 +6,12 @@
 
 		public bool IsLoaded(LayerRegistry layerRegistry) => true;
 
-		public void Load(LayerRegistry layerRegistry) { }
+		public void Load(LayerRegistry layerRegistry)
+		{
+		}
 
-		public void Unload(LayerRegistry layerRegistry) { }
+		public void Unload(LayerRegistry layerRegistry)
+		{
+		}
 	}
 }
