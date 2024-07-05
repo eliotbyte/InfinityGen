@@ -6,12 +6,12 @@ namespace EliotByte.InfinityGen.Tests
 {
 	public class FloatEntityChunk : IChunk2D
 	{
-		private readonly Vector2Int _position;
-		private readonly Rectangle _area;
-		private readonly int _count;
-		private readonly int _seed;
+		private Vector2Int _position;
+		private Rectangle _area;
+		private int _count;
+		private int _seed;
 
-		public FloatEntityChunk(Vector2Int position, int size, int count, int seed)
+		private void Initialize(Vector2Int position, int size, int count, int seed)
 		{
 			_position = position;
 			_area = new Rectangle(position.x * size, position.y * size, size);
@@ -51,6 +51,8 @@ namespace EliotByte.InfinityGen.Tests
 
 		public class Factory : IChunkFactory2D<FloatEntityChunk>
 		{
+			private Pool<FloatEntityChunk> _pool = new(() => new());
+
 			private readonly int _count;
 			private readonly int _seed;
 
@@ -62,7 +64,14 @@ namespace EliotByte.InfinityGen.Tests
 
 			public FloatEntityChunk Create(Vector2Int position, int size, LayerRegistry<Vector2Int> layerRegistry)
 			{
-				return new FloatEntityChunk(position, size, _count, _seed);
+				var chunk = _pool.Get();
+				chunk.Initialize(position, size, _count, _seed);
+				return chunk;
+			}
+
+			public void Dispose(FloatEntityChunk chunk)
+			{
+				_pool.Return(chunk);
 			}
 		}
 	}

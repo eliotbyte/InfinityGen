@@ -4,26 +4,26 @@ namespace EliotByte.InfinityGen
 {
 	public class CircleDependency<TChunk> : IDependency2D where TChunk : IChunk2D
 	{
-		private readonly Circle _circle;
-
 		public CircleDependency(Circle circle)
 		{
-			_circle = circle;
+			Circle = circle;
 		}
+
+		public Circle Circle { get; set; }
 
 		public bool IsLoaded(LayerRegistry<Vector2Int> layerRegistry)
 		{
-			return layerRegistry.Get<TChunk>().IsLoaded(_circle);
+			return layerRegistry.Get<TChunk>().IsLoaded(Circle);
 		}
 
 		public void Load(LayerRegistry<Vector2Int> layerRegistry)
 		{
-			layerRegistry.Get<TChunk>().RequestLoad(this, _circle);
+			layerRegistry.Get<TChunk>().RequestLoad(this, Circle);
 		}
 
 		public void Unload(LayerRegistry<Vector2Int> layerRegistry)
 		{
-			layerRegistry.Get<TChunk>().RequestUnload(this, _circle);
+			layerRegistry.Get<TChunk>().RequestUnload(this, Circle);
 		}
 	}
 }
