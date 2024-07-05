@@ -1,22 +1,17 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace EliotByte.InfinityGen
 {
-	public class LayerRegistry
+	public class LayerRegistry<TDimension>
 	{
-		private readonly Dictionary<Type, IChunkLayer> _layersByChunkType = new();
+		protected Dictionary<Type, IChunkLayer<TDimension>> LayersByChunkType { get; } = new();
 
-		public IEnumerable<IChunkLayer> AllLayers => _layersByChunkType.Values;
+		public IEnumerable<IChunkLayer<TDimension>> AllLayers => LayersByChunkType.Values;
 
-		public void Register<TChunk>(int chunkSize, IChunkFactory<TChunk> factory) where TChunk : IChunk
+		public IChunkLayer<TChunk, TDimension> Get<TChunk>() where TChunk : IChunk<TDimension>
 		{
-			_layersByChunkType.Add(typeof(TChunk), new ChunkLayer<TChunk>(chunkSize, factory, this));
-		}
-
-		public ChunkLayer<TChunk> Get<TChunk>() where TChunk : IChunk
-		{
-			return (ChunkLayer<TChunk>)_layersByChunkType[typeof(TChunk)];
+			return (IChunkLayer<TChunk, TDimension>)LayersByChunkType[typeof(TChunk)];
 		}
 	}
 }

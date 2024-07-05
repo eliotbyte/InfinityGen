@@ -1,9 +1,9 @@
 ﻿namespace EliotByte.InfinityGen
 {
-	public interface IDependency
+	public interface IDependency<TDimension>
 	{
-		bool IsLoaded(LayerRegistry layerRegistry);
-		void Load(LayerRegistry layerRegistry);
-		void Unload(LayerRegistry layerRegistry);
+		bool IsLoaded(LayerRegistry<TDimension> layerRegistry);
+		void Load(LayerRegistry<TDimension> layerRegistry);
+		void Unload(LayerRegistry<TDimension> layerRegistry);
 	}
 }

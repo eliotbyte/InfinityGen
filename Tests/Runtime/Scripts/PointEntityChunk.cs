@@ -5,36 +5,35 @@ using Random = System.Random;
 
 namespace EliotByte.InfinityGen.Tests
 {
-	public class PointEntityChunk : IChunk
+	public class PointEntityChunk : IChunk2D
 	{
-        private readonly Vector2Int _position;
-        private readonly Rectangle _area;
-        private readonly LayerRegistry _layerRegistry;
+		private readonly Vector2Int _position;
+		private readonly Rectangle _area;
+		private readonly LayerRegistry<Vector2Int> _layerRegistry;
 		private readonly int _count;
-        private readonly int _seed;
+		private readonly int _seed;
 
-        public PointEntityChunk(Vector2Int position, int size, LayerRegistry layerRegistry, int count, int seed)
+		public PointEntityChunk(Vector2Int position, int size, LayerRegistry<Vector2Int> layerRegistry, int count, int seed)
 		{
-            _position = position;
-            _layerRegistry = layerRegistry;
+			_position = position;
+			_layerRegistry = layerRegistry;
 			_count = count;
-            _area = new Rectangle(position.x * size, position.y * size, size);
-            _seed = (_position.x * 73856093) ^ (_position.y * 19349663) ^ seed;
+			_area = new Rectangle(position.x * size, position.y * size, size);
+			_seed = (_position.x * 73856093) ^ (_position.y * 19349663) ^ seed;
 
-            Dependency = new AreaDependency<FloatEntityChunk>(_area);
+			Dependency = new AreaDependency<FloatEntityChunk>(_area);
 		}
 
 		public LoadStatus Status { get; private set; }
 
-		public IDependency Dependency { get; }
+		public IDependency2D Dependency { get; }
 
 		public List<PointEntity> Points { get; } = new();
 
 		public void Load()
 		{
+			Random random = new(_seed);
 			Status = LoadStatus.Processing;
-
-            Random random = new(_seed);
 
 			var floatsAround = _layerRegistry.Get<FloatEntityChunk>()
 				.GetChunks(_area)
@@ -59,18 +58,18 @@ namespace EliotByte.InfinityGen.Tests
 			Status = LoadStatus.Loaded;
 		}
 
-		public class Factory : IChunkFactory<PointEntityChunk>
+		public class Factory : IChunkFactory2D<PointEntityChunk>
 		{
 			private readonly int _count;
-            private readonly int _seed;
+			private readonly int _seed;
 
-            public Factory(int count, int seed)
-            {
-                _count = count;
-                _seed = seed;
-            }
+			public Factory(int count, int seed)
+			{
+				_count = count;
+				_seed = seed;
+			}
 
-			public PointEntityChunk Create(Vector2Int position, int size, LayerRegistry layerRegistry)
+			public PointEntityChunk Create(Vector2Int position, int size, LayerRegistry<Vector2Int> layerRegistry)
 			{
 				return new PointEntityChunk(position, size, layerRegistry, _count, _seed);
 			}

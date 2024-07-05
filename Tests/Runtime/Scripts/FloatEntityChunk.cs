@@ -4,30 +4,29 @@ using Random = System.Random;
 
 namespace EliotByte.InfinityGen.Tests
 {
-	public class FloatEntityChunk : IChunk
+	public class FloatEntityChunk : IChunk2D
 	{
-        private readonly Vector2Int _position;
-        private readonly Rectangle _area;
-        private readonly int _count;
-        private readonly int _seed;
+		private readonly Vector2Int _position;
+		private readonly Rectangle _area;
+		private readonly int _count;
+		private readonly int _seed;
 
-        public FloatEntityChunk(Vector2Int position, int size, int count, int seed)
+		public FloatEntityChunk(Vector2Int position, int size, int count, int seed)
 		{
-            _position = position;
-            _area = new Rectangle(position.x * size, position.y * size, size);
-            _count = count;
-            _seed = (_position.x * 73856093) ^ (_position.y * 19349663) ^ seed;
-        }
+			_position = position;
+			_area = new Rectangle(position.x * size, position.y * size, size);
+			_count = count;
+			_seed = (_position.x * 73856093) ^ (_position.y * 19349663) ^ seed;
+		}
 
 		public List<FloatEntity> Entities { get; } = new();
 
 		public LoadStatus Status { get; private set; }
 
 		public void Load()
-        {
+		{
+			Random random = new(_seed);
 			Status = LoadStatus.Processing;
-
-            Random random = new(_seed);
 
 			for (int i = 0; i < _count; i++)
 			{
@@ -48,18 +47,18 @@ namespace EliotByte.InfinityGen.Tests
 			Status = LoadStatus.Loaded;
 		}
 
-		public class Factory : IChunkFactory<FloatEntityChunk>
+		public class Factory : IChunkFactory2D<FloatEntityChunk>
 		{
 			private readonly int _count;
-            private readonly int _seed;
+			private readonly int _seed;
 
-            public Factory(int count, int seed)
-            {
-                _count = count;
-                _seed = seed;
-            }
+			public Factory(int count, int seed)
+			{
+				_count = count;
+				_seed = seed;
+			}
 
-			public FloatEntityChunk Create(Vector2Int position, int size, LayerRegistry layerRegistry)
+			public FloatEntityChunk Create(Vector2Int position, int size, LayerRegistry<Vector2Int> layerRegistry)
 			{
 				return new FloatEntityChunk(position, size, _count, _seed);
 			}

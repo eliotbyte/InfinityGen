@@ -1,21 +1,20 @@
-﻿using UnityEngine;
-
-namespace EliotByte.InfinityGen
+﻿namespace EliotByte.InfinityGen
 {
-	public interface IChunkLayer
+	public interface IChunkLayer<TDimension>
 	{
-		bool IsLoaded(Circle circle);
-		bool IsLoaded(Rectangle area);
-		bool IsLoaded(Vector2Int position);
+		int ChunkSize { get; }
 
-		void RequestLoad(object requestSource, Circle circle);
-		void RequestLoad(object requestSource, Rectangle area);
-		void RequestLoad(object requestSource, Vector2Int position);
+		bool IsLoaded(TDimension position);
 
-		void RequestUnload(object requestSource, Circle circle);
-		void RequestUnload(object requestSource, Rectangle area);
-		void RequestUnload(object requestSource, Vector2Int position);
+		void RequestLoad(object requestSource, TDimension position);
+
+		void RequestUnload(object requestSource, TDimension position);
 
 		void ProcessRequests();
+	}
+
+	public interface IChunkLayer<TChunk, TDimension> : IChunkLayer<TDimension>
+	{
+		TChunk GetChunk(TDimension position);
 	}
 }
