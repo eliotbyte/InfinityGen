@@ -6,7 +6,7 @@ namespace EliotByte.InfinityGen
 	{
 		private readonly Circle _circle;
 
-		public CircleDependency(LayerRegistry2D layerRegistry, Circle circle)
+		public CircleDependency(Circle circle)
 		{
 			_circle = circle;
 		}
