@@ -72,12 +72,12 @@ namespace EliotByte.InfinityGen
 			// TODO: Add caching
 			List<Vector2Int> chunkPositions = new();
 
-			float xEnd = area.X + area.Width;
-			float yEnd = area.Y + area.Height;
+			float xEnd = area.MaxX;
+			float yEnd = area.MaxY;
 
-			int minChunkX = Mathf.FloorToInt(area.X / chunkSize);
+			int minChunkX = Mathf.FloorToInt(area.MinX / chunkSize);
 			int maxChunkX = Mathf.FloorToInt((xEnd - 1) / chunkSize);
-			int minChunkY = Mathf.FloorToInt(area.Y / chunkSize);
+			int minChunkY = Mathf.FloorToInt(area.MinY / chunkSize);
 			int maxChunkY = Mathf.FloorToInt((yEnd - 1) / chunkSize);
 
 			for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++)

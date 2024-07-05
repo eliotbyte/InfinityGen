@@ -2,7 +2,7 @@
 {
 	public interface IChunkLayer<TDimension>
 	{
-		float ChunkSize { get; }
+		int ChunkSize { get; }
 
 		bool IsLoaded(TDimension position);
 

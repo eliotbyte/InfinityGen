@@ -22,7 +22,7 @@ namespace EliotByte.InfinityGen
 		private readonly Dictionary<TDimension, ChunkHandle> _chunkHandles = new();
 		private readonly HashSet<TDimension> _positionsToProcess = new();
 
-		public float ChunkSize { get; }
+		public int ChunkSize { get; }
 
 		public ChunkLayer(int chunkSize, IChunkFactory<TChunk, TDimension> chunkFactory, LayerRegistry<TDimension> layerRegistry)
 		{

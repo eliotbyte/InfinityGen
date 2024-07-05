@@ -7,19 +7,21 @@ namespace EliotByte.InfinityGen.Tests
 {
 	public class PointEntityChunk : IChunk2D
 	{
-		private readonly ChunkPosition _chunkPosition;
+		private readonly Vector2Int _position;
+		private readonly Rectangle _area;
 		private readonly LayerRegistry<Vector2Int> _layerRegistry;
 		private readonly int _count;
 		private readonly int _seed;
 
-		public PointEntityChunk(ChunkPosition chunkPosition, LayerRegistry<Vector2Int> layerRegistry, int count, int seed)
+		public PointEntityChunk(Vector2Int position, int size, LayerRegistry<Vector2Int> layerRegistry, int count, int seed)
 		{
-			_chunkPosition = chunkPosition;
+			_position = position;
 			_layerRegistry = layerRegistry;
 			_count = count;
-			_seed = (chunkPosition.Position.x * 73856093) ^ (chunkPosition.Position.y * 19349663) ^ seed;
+			_area = new Rectangle(position.x * size, position.y * size, size);
+			_seed = (_position.x * 73856093) ^ (_position.y * 19349663) ^ seed;
 
-			Dependency = new AreaDependency<FloatEntityChunk>(_chunkPosition.Area);
+			Dependency = new AreaDependency<FloatEntityChunk>(_area);
 		}
 
 		public LoadStatus Status { get; private set; }
@@ -34,14 +36,13 @@ namespace EliotByte.InfinityGen.Tests
 			Status = LoadStatus.Processing;
 
 			var floatsAround = _layerRegistry.Get<FloatEntityChunk>()
-				.GetChunks(_chunkPosition.Area)
+				.GetChunks(_area)
 				.SelectMany(chunk => chunk.Entities).ToArray();
 
-			var chunkArea = _chunkPosition.Area;
 			for (int i = 0; i < _count; i++)
 			{
-				float x = (float)(random.NextDouble() * chunkArea.Width) + chunkArea.X;
-				float y = (float)(random.NextDouble() * chunkArea.Height) + chunkArea.Y;
+				float x = (float)(random.NextDouble() * _area.Width) + _area.MinX;
+				float y = (float)(random.NextDouble() * _area.Height) + _area.MinY;
 				Points.Add(new PointEntity(new Vector2(x, y)));
 			}
 
@@ -68,9 +69,9 @@ namespace EliotByte.InfinityGen.Tests
 				_seed = seed;
 			}
 
-			public PointEntityChunk Create(Vector2Int position, float size, LayerRegistry<Vector2Int> layerRegistry)
+			public PointEntityChunk Create(Vector2Int position, int size, LayerRegistry<Vector2Int> layerRegistry)
 			{
-				return new PointEntityChunk(new ChunkPosition(position, size), layerRegistry, _count, _seed);
+				return new PointEntityChunk(position, size, layerRegistry, _count, _seed);
 			}
 		}
 	}

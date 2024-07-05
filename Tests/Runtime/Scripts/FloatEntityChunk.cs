@@ -6,15 +6,17 @@ namespace EliotByte.InfinityGen.Tests
 {
 	public class FloatEntityChunk : IChunk2D
 	{
-		private readonly ChunkPosition _chunkPosition;
+		private readonly Vector2Int _position;
+		private readonly Rectangle _area;
 		private readonly int _count;
 		private readonly int _seed;
 
-		public FloatEntityChunk(ChunkPosition chunkPosition, int count, int seed)
+		public FloatEntityChunk(Vector2Int position, int size, int count, int seed)
 		{
-			_chunkPosition = chunkPosition;
+			_position = position;
+			_area = new Rectangle(position.x * size, position.y * size, size);
 			_count = count;
-			_seed = (chunkPosition.Position.x * 73856093) ^ (chunkPosition.Position.y * 19349663) ^ seed;
+			_seed = (_position.x * 73856093) ^ (_position.y * 19349663) ^ seed;
 		}
 
 		public List<FloatEntity> Entities { get; } = new();
@@ -26,11 +28,10 @@ namespace EliotByte.InfinityGen.Tests
 			Random random = new(_seed);
 			Status = LoadStatus.Processing;
 
-			var chunkArea = _chunkPosition.Area;
 			for (int i = 0; i < _count; i++)
 			{
-				float x = (float)(chunkArea.X + random.NextDouble() * chunkArea.Width);
-				float y = (float)(chunkArea.Y + random.NextDouble() * chunkArea.Height);
+				float x = (float)(_area.MinX + random.NextDouble() * _area.Width);
+				float y = (float)(_area.MinY + random.NextDouble() * _area.Height);
 				Entities.Add(new FloatEntity(new Vector2(x, y), (float)random.NextDouble()));
 			}
 
@@ -57,9 +58,9 @@ namespace EliotByte.InfinityGen.Tests
 				_seed = seed;
 			}
 
-			public FloatEntityChunk Create(Vector2Int position, float size, LayerRegistry<Vector2Int> layerRegistry)
+			public FloatEntityChunk Create(Vector2Int position, int size, LayerRegistry<Vector2Int> layerRegistry)
 			{
-				return new FloatEntityChunk(new ChunkPosition(position, size), _count, _seed);
+				return new FloatEntityChunk(position, size, _count, _seed);
 			}
 		}
 	}
