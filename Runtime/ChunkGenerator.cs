@@ -5,16 +5,11 @@ namespace EliotByte.InfinityGen
 {
 	public class ChunkGenerator
 	{
-		private readonly HashSet<IChunkViewport> _viewports = new();
+        public LayerRegistry LayerRegistry { get; } = new();
 
-		public ChunkGenerator(IRandomFactory random)
-		{
-			LayerRegistry = new LayerRegistry(random);
-		}
+        private readonly HashSet<IChunkViewport> _viewports = new();
 
-		public LayerRegistry LayerRegistry { get; }
-
-		public void RegisterLayer<TChunk>(int chunkSize, IChunkFactory<TChunk> chunkFactory) where TChunk : IChunk
+        public void RegisterLayer<TChunk>(int chunkSize, IChunkFactory<TChunk> chunkFactory) where TChunk : IChunk
 		{
 			LayerRegistry.Register(chunkSize, chunkFactory);
 		}

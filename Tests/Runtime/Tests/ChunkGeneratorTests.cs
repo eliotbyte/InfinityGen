@@ -9,10 +9,11 @@ namespace EliotByte.InfinityGen.Tests
 		[Test]
 		public void TestChunkCreation()
 		{
-			ChunkGenerator chunkGenerator = new(new RandomFactory(0));
+            int seed = 0;
+			ChunkGenerator chunkGenerator = new();
 
-			chunkGenerator.RegisterLayer(7, new PointEntityChunk.Factory(5));
-			chunkGenerator.RegisterLayer(10, new FloatEntityChunk.Factory(3));
+			chunkGenerator.RegisterLayer(7, new PointEntityChunk.Factory(5, seed));
+			chunkGenerator.RegisterLayer(10, new FloatEntityChunk.Factory(3, seed));
 
 			Viewport viewport = new(Vector2.zero, 5f);
 

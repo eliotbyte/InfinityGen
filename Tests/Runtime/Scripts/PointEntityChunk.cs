@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Random = System.Random;
 
 namespace EliotByte.InfinityGen.Tests
 {
@@ -9,12 +10,14 @@ namespace EliotByte.InfinityGen.Tests
 		private readonly ChunkPosition _chunkPosition;
 		private readonly LayerRegistry _layerRegistry;
 		private readonly int _count;
+        private readonly int _seed;
 
-		public PointEntityChunk(ChunkPosition chunkPosition, LayerRegistry layerRegistry, int count)
+		public PointEntityChunk(ChunkPosition chunkPosition, LayerRegistry layerRegistry, int count, int seed)
 		{
 			_chunkPosition = chunkPosition;
 			_layerRegistry = layerRegistry;
 			_count = count;
+            _seed = (chunkPosition.Position.x * 73856093) ^ (chunkPosition.Position.y * 19349663) ^ seed;
 
 			Dependency = new AreaDependency<FloatEntityChunk>(_chunkPosition.Area);
 		}
@@ -25,9 +28,11 @@ namespace EliotByte.InfinityGen.Tests
 
 		public List<PointEntity> Points { get; } = new List<PointEntity>();
 
-		public void Load(System.Random random)
+		public void Load()
 		{
 			Status = LoadStatus.Processing;
+
+            Random random = new(_seed);
 
 			var floatsAround = _layerRegistry.Get<FloatEntityChunk>()
 				.GetChunks(_chunkPosition.Area)
@@ -56,15 +61,17 @@ namespace EliotByte.InfinityGen.Tests
 		public class Factory : IChunkFactory<PointEntityChunk>
 		{
 			private readonly int _count;
+            private readonly int _seed;
 
-			public Factory(int count)
+			public Factory(int count, int seed)
 			{
 				_count = count;
+                _seed = seed;
 			}
 
 			public PointEntityChunk Create(ChunkPosition position, LayerRegistry layerRegistry)
 			{
-				return new PointEntityChunk(position, layerRegistry, _count);
+				return new PointEntityChunk(position, layerRegistry, _count, _seed);
 			}
 		}
 	}
