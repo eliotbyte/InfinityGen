@@ -7,26 +7,28 @@ namespace EliotByte.InfinityGen.Tests
 {
 	public class PointEntityChunk : IChunk
 	{
-		private readonly ChunkPosition _chunkPosition;
-		private readonly LayerRegistry _layerRegistry;
+        private readonly Vector2Int _position;
+        private readonly Rectangle _area;
+        private readonly LayerRegistry _layerRegistry;
 		private readonly int _count;
         private readonly int _seed;
 
-		public PointEntityChunk(ChunkPosition chunkPosition, LayerRegistry layerRegistry, int count, int seed)
+        public PointEntityChunk(Vector2Int position, int size, LayerRegistry layerRegistry, int count, int seed)
 		{
-			_chunkPosition = chunkPosition;
-			_layerRegistry = layerRegistry;
+            _position = position;
+            _layerRegistry = layerRegistry;
 			_count = count;
-            _seed = (chunkPosition.Position.x * 73856093) ^ (chunkPosition.Position.y * 19349663) ^ seed;
+            _area = new Rectangle(position.x * size, position.y * size, size);
+            _seed = (_position.x * 73856093) ^ (_position.y * 19349663) ^ seed;
 
-			Dependency = new AreaDependency<FloatEntityChunk>(_chunkPosition.Area);
+            Dependency = new AreaDependency<FloatEntityChunk>(_area);
 		}
 
 		public LoadStatus Status { get; private set; }
 
 		public IDependency Dependency { get; }
 
-		public List<PointEntity> Points { get; } = new List<PointEntity>();
+		public List<PointEntity> Points { get; } = new();
 
 		public void Load()
 		{
@@ -35,14 +37,13 @@ namespace EliotByte.InfinityGen.Tests
             Random random = new(_seed);
 
 			var floatsAround = _layerRegistry.Get<FloatEntityChunk>()
-				.GetChunks(_chunkPosition.Area)
+				.GetChunks(_area)
 				.SelectMany(chunk => chunk.Entities).ToArray();
 
-			var chunkArea = _chunkPosition.Area;
 			for (int i = 0; i < _count; i++)
 			{
-				float x = (float)(random.NextDouble() * chunkArea.Width) + chunkArea.X;
-				float y = (float)(random.NextDouble() * chunkArea.Height) + chunkArea.Y;
+				float x = (float)(random.NextDouble() * _area.Width) + _area.X;
+				float y = (float)(random.NextDouble() * _area.Height) + _area.Y;
 				Points.Add(new PointEntity(new Vector2(x, y)));
 			}
 
@@ -63,15 +64,15 @@ namespace EliotByte.InfinityGen.Tests
 			private readonly int _count;
             private readonly int _seed;
 
-			public Factory(int count, int seed)
-			{
-				_count = count;
+            public Factory(int count, int seed)
+            {
+                _count = count;
                 _seed = seed;
-			}
+            }
 
-			public PointEntityChunk Create(ChunkPosition position, LayerRegistry layerRegistry)
+			public PointEntityChunk Create(Vector2Int position, int size, LayerRegistry layerRegistry)
 			{
-				return new PointEntityChunk(position, layerRegistry, _count, _seed);
+				return new PointEntityChunk(position, size, layerRegistry, _count, _seed);
 			}
 		}
 	}

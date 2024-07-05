@@ -95,7 +95,7 @@ namespace EliotByte.InfinityGen
 		{
 			if (!_chunkHandles.TryGetValue(position, out var handle))
 			{
-				handle = new(_chunkFactory.Create(new ChunkPosition(position, ChunkSize), _layerRegistry), new HashSet<object>());
+				handle = new ChunkHandle(_chunkFactory.Create(position, ChunkSize, _layerRegistry), new HashSet<object>());
 				_chunkHandles.Add(position, handle);
 			}
 

@@ -8,7 +8,7 @@ namespace EliotByte.InfinityGen.Tests
 	{
 		[Test]
 		public void TestChunkCreation()
-		{
+        {
             int seed = 0;
 			ChunkGenerator chunkGenerator = new();
 

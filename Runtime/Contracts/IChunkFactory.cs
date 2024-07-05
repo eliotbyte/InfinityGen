@@ -1,7 +1,9 @@
+using UnityEngine;
+
 namespace EliotByte.InfinityGen
 {
 	public interface IChunkFactory<TChunk>
 	{
-		TChunk Create(ChunkPosition position, LayerRegistry layerRegistry);
+		TChunk Create(Vector2Int position, int size, LayerRegistry layerRegistry);
 	}
 }

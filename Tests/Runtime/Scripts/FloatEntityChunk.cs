@@ -6,32 +6,33 @@ namespace EliotByte.InfinityGen.Tests
 {
 	public class FloatEntityChunk : IChunk
 	{
-		private readonly ChunkPosition _chunkPosition;
-		private readonly int _count;
+        private readonly Vector2Int _position;
+        private readonly Rectangle _area;
+        private readonly int _count;
         private readonly int _seed;
 
-		public FloatEntityChunk(ChunkPosition chunkPosition, int count, int seed)
+        public FloatEntityChunk(Vector2Int position, int size, int count, int seed)
 		{
-			_chunkPosition = chunkPosition;
-			_count = count;
-            _seed = (chunkPosition.Position.x * 73856093) ^ (chunkPosition.Position.y * 19349663) ^ seed;
-		}
+            _position = position;
+            _area = new Rectangle(position.x * size, position.y * size, size);
+            _count = count;
+            _seed = (_position.x * 73856093) ^ (_position.y * 19349663) ^ seed;
+        }
 
-		public List<FloatEntity> Entities { get; } = new List<FloatEntity>();
+		public List<FloatEntity> Entities { get; } = new();
 
 		public LoadStatus Status { get; private set; }
 
 		public void Load()
-		{
+        {
 			Status = LoadStatus.Processing;
 
             Random random = new(_seed);
 
-			var chunkArea = _chunkPosition.Area;
 			for (int i = 0; i < _count; i++)
 			{
-				float x = (float)(chunkArea.X + random.NextDouble() * chunkArea.Width);
-				float y = (float)(chunkArea.Y + random.NextDouble() * chunkArea.Height);
+				float x = (float)(_area.X + random.NextDouble() * _area.Width);
+				float y = (float)(_area.Y + random.NextDouble() * _area.Height);
 				Entities.Add(new FloatEntity(new Vector2(x, y), (float)random.NextDouble()));
 			}
 
@@ -52,15 +53,15 @@ namespace EliotByte.InfinityGen.Tests
 			private readonly int _count;
             private readonly int _seed;
 
-			public Factory(int count, int seed)
-			{
-				_count = count;
+            public Factory(int count, int seed)
+            {
+                _count = count;
                 _seed = seed;
-			}
+            }
 
-			public FloatEntityChunk Create(ChunkPosition position, LayerRegistry layerRegistry)
+			public FloatEntityChunk Create(Vector2Int position, int size, LayerRegistry layerRegistry)
 			{
-				return new FloatEntityChunk(position, _count, _seed);
+				return new FloatEntityChunk(position, size, _count, _seed);
 			}
 		}
 	}
