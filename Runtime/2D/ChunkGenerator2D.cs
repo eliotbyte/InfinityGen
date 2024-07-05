@@ -21,17 +21,22 @@ namespace EliotByte.InfinityGen
 
 		public void Generate()
 		{
-			foreach (IChunkViewport viewport in _viewports)
+			foreach (IChunkLayer<Vector2Int> layer in LayerRegistry.AllLayers)
 			{
-				// TODO: Request unload when viewport is not acitve
-				if (!viewport.IsActive)
-					continue;
+				Vector2Int processingCenter = Vector2Int.zero;
 
-				foreach (IChunkLayer<Vector2Int> layer in LayerRegistry.AllLayers)
+				foreach (IChunkViewport viewport in _viewports)
 				{
-					layer.RequestLoad(viewport, new Circle(viewport.Position, viewport.Radius));
-					layer.ProcessRequests(new Vector2Int((int)viewport.Position.x, (int)viewport.Position.y));
+					layer.RequestUnload(viewport, new Circle(viewport.PreviousPosition, viewport.Radius));
+
+					if (viewport.IsActive)
+					{
+						processingCenter = new((int)viewport.Position.x, (int)viewport.Position.y);
+						layer.RequestLoad(viewport, new Circle(viewport.Position, viewport.Radius));
+					}
 				}
+
+				layer.ProcessRequests(processingCenter);
 			}
 		}
 	}
