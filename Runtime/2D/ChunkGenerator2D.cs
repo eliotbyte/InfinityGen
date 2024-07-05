@@ -7,7 +7,7 @@ namespace EliotByte.InfinityGen
 	{
 		private readonly HashSet<IChunkViewport> _viewports = new();
 
-		public LayerRegistry2D LayerRegistry { get; } = new();
+		public LayerRegistry<Vector2Int> LayerRegistry { get; } = new();
 
 		public void RegisterLayer<TChunk>(int chunkSize, IChunkFactory2D<TChunk> chunkFactory) where TChunk : IChunk2D
 		{

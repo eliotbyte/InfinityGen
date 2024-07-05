@@ -4,7 +4,7 @@ namespace EliotByte.InfinityGen
 	{
 		LoadStatus Status { get; }
 
-		IDependency<TDimension> Dependency => EmptyDependency<TDimension>.Instance;
+		IDependency<TDimension> Dependency { get; }
 
 		void Load();
 

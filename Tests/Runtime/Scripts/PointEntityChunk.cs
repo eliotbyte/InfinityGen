@@ -26,7 +26,7 @@ namespace EliotByte.InfinityGen.Tests
 
 		public LoadStatus Status { get; private set; }
 
-		public IDependency2D Dependency { get; }
+		public IDependency<Vector2Int> Dependency { get; }
 
 		public List<PointEntity> Points { get; } = new();
 
@@ -60,6 +60,8 @@ namespace EliotByte.InfinityGen.Tests
 
 		public class Factory : IChunkFactory2D<PointEntityChunk>
 		{
+			
+			
 			private readonly int _count;
 			private readonly int _seed;
 
@@ -72,6 +74,10 @@ namespace EliotByte.InfinityGen.Tests
 			public PointEntityChunk Create(Vector2Int position, int size, LayerRegistry<Vector2Int> layerRegistry)
 			{
 				return new PointEntityChunk(position, size, layerRegistry, _count, _seed);
+			}
+
+			public void Dispose(PointEntityChunk chunk)
+			{
 			}
 		}
 	}

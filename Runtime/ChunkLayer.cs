@@ -21,6 +21,7 @@ namespace EliotByte.InfinityGen
 		private readonly IChunkFactory<TChunk, TDimension> _chunkFactory;
 		private readonly Dictionary<TDimension, ChunkHandle> _chunkHandles = new();
 		private readonly HashSet<TDimension> _positionsToProcess = new();
+		private readonly Pool<HashSet<object>> _hashsetPool = new(() => new HashSet<object>());
 
 		public int ChunkSize { get; }
 
@@ -42,7 +43,7 @@ namespace EliotByte.InfinityGen
 		{
 			if (!_chunkHandles.TryGetValue(position, out var handle))
 			{
-				handle = new(_chunkFactory.Create(position, ChunkSize, _layerRegistry), new HashSet<object>());
+				handle = new(_chunkFactory.Create(position, ChunkSize, _layerRegistry), _hashsetPool.Get());
 				_chunkHandles.Add(position, handle);
 			}
 
@@ -64,6 +65,12 @@ namespace EliotByte.InfinityGen
 			ProcessIfNeeded(position, handle);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public TChunk GetChunk(TDimension position)
+		{
+			return _chunkHandles[position].Chunk;
+		}
+
 		private void ProcessIfNeeded(TDimension position, ChunkHandle handle)
 		{
 			bool needLoad = handle.LoadRequests.Count > 0;
@@ -79,18 +86,13 @@ namespace EliotByte.InfinityGen
 			{
 				_positionsToProcess.Remove(position);
 
-				// TODO: Add chunk pooling
-				if (isUnloaded)
+				if (handle.Chunk.Status == LoadStatus.Unloaded)
 				{
+					_hashsetPool.Return(handle.LoadRequests);
+					_chunkFactory.Dispose(handle.Chunk);
 					_chunkHandles.Remove(position);
 				}
 			}
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public TChunk GetChunk(TDimension position)
-		{
-			return _chunkHandles[position].Chunk;
 		}
 
 		private readonly List<TDimension> _processedPositions = new();
@@ -138,9 +140,11 @@ namespace EliotByte.InfinityGen
 			{
 				_positionsToProcess.Remove(position);
 
-				// TODO: Add chunk pooling
-				if (_chunkHandles[position].Chunk.Status == LoadStatus.Unloaded)
+				var handle = _chunkHandles[position];
+				if (handle.Chunk.Status == LoadStatus.Unloaded)
 				{
+					_hashsetPool.Return(handle.LoadRequests);
+					_chunkFactory.Dispose(handle.Chunk);
 					_chunkHandles.Remove(position);
 				}
 			}
