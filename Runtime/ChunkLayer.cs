@@ -19,17 +19,15 @@ namespace EliotByte.InfinityGen
 		}
 
 		private readonly IChunkFactory<TChunk> _chunkFactory;
-		private readonly IRandomFactory _randomFactory;
 		private readonly LayerRegistry _layerRegistry;
 		private readonly Dictionary<Vector2Int, ChunkHandle> _chunkHandles = new();
 		private readonly HashSet<Vector2Int> _positionsToProcess = new();
 
 		public int ChunkSize { get; }
 
-		public ChunkLayer(int chunkSize, IChunkFactory<TChunk> chunkFactory, IRandomFactory randomFactory, LayerRegistry layerRegistry)
+		public ChunkLayer(int chunkSize, IChunkFactory<TChunk> chunkFactory, LayerRegistry layerRegistry)
 		{
 			_chunkFactory = chunkFactory;
-			_randomFactory = randomFactory;
 			_layerRegistry = layerRegistry;
 			ChunkSize = chunkSize;
 		}
@@ -156,7 +154,7 @@ namespace EliotByte.InfinityGen
 					}
 					else
 					{
-						handle.Chunk.Load(_randomFactory.WorldPointRandom(position));
+						handle.Chunk.Load();
 					}
 				}
 				else

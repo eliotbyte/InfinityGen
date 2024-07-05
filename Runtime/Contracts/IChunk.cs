@@ -8,7 +8,7 @@ namespace EliotByte.InfinityGen
 
 		IDependency Dependency => EmptyDependency.Instance;
 
-		void Load(Random random);
+		void Load();
 
 		void Unload();
 	}
