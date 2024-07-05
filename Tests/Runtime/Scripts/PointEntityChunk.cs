@@ -8,11 +8,11 @@ namespace EliotByte.InfinityGen.Tests
 	public class PointEntityChunk : IChunk
 	{
 		private readonly ChunkPosition _chunkPosition;
-		private readonly LayerRegistry _layerRegistry;
+		private readonly LayerRegistry2D _layerRegistry;
 		private readonly int _count;
         private readonly int _seed;
 
-        public PointEntityChunk(ChunkPosition chunkPosition, LayerRegistry layerRegistry, int count, int seed)
+        public PointEntityChunk(ChunkPosition chunkPosition, LayerRegistry2D layerRegistry, int count, int seed)
 		{
 			_chunkPosition = chunkPosition;
 			_layerRegistry = layerRegistry;
@@ -57,7 +57,7 @@ namespace EliotByte.InfinityGen.Tests
 			Status = LoadStatus.Loaded;
 		}
 
-		public class Factory : IChunkFactory<PointEntityChunk>
+		public class Factory : IChunkFactory2D<PointEntityChunk>
 		{
 			private readonly int _count;
             private readonly int _seed;
@@ -68,9 +68,9 @@ namespace EliotByte.InfinityGen.Tests
                 _seed = seed;
             }
 
-			public PointEntityChunk Create(ChunkPosition position, LayerRegistry layerRegistry)
+			public PointEntityChunk Create(Vector2Int position, float size, LayerRegistry2D layerRegistry)
 			{
-				return new PointEntityChunk(position, layerRegistry, _count, _seed);
+				return new PointEntityChunk(new ChunkPosition(position, size), layerRegistry, _count, _seed);
 			}
 		}
 	}

@@ -46,7 +46,7 @@ namespace EliotByte.InfinityGen.Tests
 			Status = LoadStatus.Loaded;
 		}
 
-		public class Factory : IChunkFactory<FloatEntityChunk>
+		public class Factory : IChunkFactory2D<FloatEntityChunk>
 		{
 			private readonly int _count;
             private readonly int _seed;
@@ -57,9 +57,9 @@ namespace EliotByte.InfinityGen.Tests
                 _seed = seed;
             }
 
-			public FloatEntityChunk Create(ChunkPosition position, LayerRegistry layerRegistry)
+			public FloatEntityChunk Create(Vector2Int position, float size, LayerRegistry2D layerRegistry)
 			{
-				return new FloatEntityChunk(position, _count, _seed);
+				return new FloatEntityChunk(new ChunkPosition(position, size), _count, _seed);
 			}
 		}
 	}

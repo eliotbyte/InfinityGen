@@ -21,7 +21,7 @@ namespace EliotByte.InfinityGen
 			_dependencies.Add(dependency);
 		}
 
-		public bool IsLoaded(LayerRegistry layerRegistry)
+		public bool IsLoaded(LayerRegistry2D layerRegistry)
 		{
 			foreach (var dependency in _dependencies)
 			{
@@ -33,7 +33,7 @@ namespace EliotByte.InfinityGen
 			return true;
 		}
 
-		public void Load(LayerRegistry layerRegistry)
+		public void Load(LayerRegistry2D layerRegistry)
 		{
 			foreach (var dependency in _dependencies)
 			{
@@ -41,7 +41,7 @@ namespace EliotByte.InfinityGen
 			}
 		}
 
-		public void Unload(LayerRegistry layerRegistry)
+		public void Unload(LayerRegistry2D layerRegistry)
 		{
 			foreach (var dependency in _dependencies)
 			{

@@ -7,9 +7,9 @@ namespace EliotByte.InfinityGen
 		public Vector2Int Position { get; }
 		public Vector2 GlobalPosition { get; }
 		public Rectangle Area { get; }
-		public int Size { get; }
+		public float Size { get; }
 
-		public ChunkPosition(Vector2Int position, int chunkSize)
+		public ChunkPosition(Vector2Int position, float chunkSize)
 		{
 			Position = position;
 			Size = chunkSize;

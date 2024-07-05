@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace EliotByte.InfinityGen
 {
-	public class ChunkGenerator
+	public class ChunkGenerator2D
 	{
 		private readonly HashSet<IChunkViewport> _viewports = new();
 
-        public LayerRegistry LayerRegistry { get; } = new();
+        public LayerRegistry2D LayerRegistry { get; } = new();
 
-        public void RegisterLayer<TChunk>(int chunkSize, IChunkFactory<TChunk> chunkFactory) where TChunk : IChunk
+        public void RegisterLayer<TChunk>(int chunkSize, IChunkFactory2D<TChunk> chunkFactory) where TChunk : IChunk
 		{
 			LayerRegistry.Register(chunkSize, chunkFactory);
 		}
@@ -27,7 +28,7 @@ namespace EliotByte.InfinityGen
 				if (!viewport.IsActive)
 					continue;
 
-				foreach (IChunkLayer layer in LayerRegistry.AllLayers)
+				foreach (IChunkLayer<Vector2Int> layer in LayerRegistry.AllLayers)
 				{
 					layer.RequestLoad(viewport, new Circle(viewport.Position, viewport.Radius));
 					layer.ProcessRequests();
