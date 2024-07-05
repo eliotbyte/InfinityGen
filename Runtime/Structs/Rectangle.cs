@@ -4,56 +4,43 @@ namespace EliotByte.InfinityGen
 {
 	public struct Rectangle
 	{
-		public Vector2 Position { get; }
-		public Vector2 Size { get; }
+        public Vector2 Min { get; }
+        public Vector2 Max { get; }
 
-		public float X => Position.x;
-		public float Y => Position.y;
-		public float Width => Size.x;
-		public float Height => Size.y;
+        public float MinX => Min.x;
+        public float MinY => Min.y;
+        public float MaxX => Max.x;
+        public float MaxY => Max.y;
+        public float Width => Max.x - Min.x;
+        public float Height => Max.y - Min.y;
 
-		public Vector2 Center
-		{
-			get
-			{
-				if (!_isCenterDirty)
-				{
-					return _center;
-				}
+        public Vector2 Center => new Vector2((Min.x + Max.x) / 2, (Min.y + Max.y) / 2);
 
-				_center = new Vector2(Position.x + Size.x / 2, Position.y + Size.y / 2);
-				_isCenterDirty = false;
-				return _center;
-			}
-		}
+        public Rectangle(Vector2 min, Vector2 max)
+        {
+            Min = min;
+            Max = max;
+        }
 
-		private Vector2 _center;
-		private bool _isCenterDirty;
+        public Rectangle(Vector2 position, float width, float height)
+            : this(position, new Vector2(position.x + width, position.y + height))
+        {
+        }
 
-		public Rectangle(Vector2 position, Vector2 size)
-		{
-			Position = position;
-			Size = size;
-			_center = default;
-			_isCenterDirty = true;
-		}
+        public Rectangle(float minX, float minY, float maxX, float maxY)
+            : this(new Vector2(minX, minY), new Vector2(maxX, maxY))
+        {
+        }
 
-		public Rectangle(Vector2 position, float size) : this(position: position, size: new Vector2(size, size))
-		{
-		}
+        public Rectangle(float x, float y, float size)
+            : this(new Vector2(x, y), new Vector2(x + size, y + size))
+        {
+        }
 
-		public Rectangle(float x, float y, float width, float height) : this(new Vector2(x, y), new Vector2(width, height))
-		{
-		}
-
-		public Rectangle(float x, float y, float size) : this(new Vector2(x, y), new Vector2(size, size))
-		{
-		}
-
-		public bool Contains(Vector2 point)
-		{
-			return point.x >= Position.x && point.x < Position.x + Size.x &&
-			       point.y >= Position.y && point.y < Position.y + Size.y;
-		}
+        public bool Contains(Vector2 point)
+        {
+            return point.x >= Min.x && point.x < Max.x &&
+                   point.y >= Min.y && point.y < Max.y;
+        }
 	}
 }

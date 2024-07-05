@@ -31,8 +31,8 @@ namespace EliotByte.InfinityGen.Tests
 
 			for (int i = 0; i < _count; i++)
 			{
-				float x = (float)(_area.X + random.NextDouble() * _area.Width);
-				float y = (float)(_area.Y + random.NextDouble() * _area.Height);
+				float x = (float)(_area.MinX + random.NextDouble() * _area.Width);
+				float y = (float)(_area.MinY + random.NextDouble() * _area.Height);
 				Entities.Add(new FloatEntity(new Vector2(x, y), (float)random.NextDouble()));
 			}
 

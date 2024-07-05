@@ -42,8 +42,8 @@ namespace EliotByte.InfinityGen.Tests
 
 			for (int i = 0; i < _count; i++)
 			{
-				float x = (float)(random.NextDouble() * _area.Width) + _area.X;
-				float y = (float)(random.NextDouble() * _area.Height) + _area.Y;
+				float x = (float)(random.NextDouble() * _area.Width) + _area.MinX;
+				float y = (float)(random.NextDouble() * _area.Height) + _area.MinY;
 				Points.Add(new PointEntity(new Vector2(x, y)));
 			}
 
