@@ -18,17 +18,19 @@ namespace EliotByte.InfinityGen
 		}
 
 		private readonly LayerRegistry<TDimension> _layerRegistry;
+		private readonly IDistanceComparer<TDimension> _distanceComparer;
 		private readonly IChunkFactory<TChunk, TDimension> _chunkFactory;
 		private readonly Dictionary<TDimension, ChunkHandle> _chunkHandles = new();
 		private readonly HashSet<TDimension> _positionsToProcess = new();
-		private readonly Pool<HashSet<object>> _hashsetPool = new(() => new HashSet<object>());
+		private readonly Pool<HashSet<object>> _hashsetPool = new(() => new());
 
 		public int ChunkSize { get; }
 
-		public ChunkLayer(int chunkSize, IChunkFactory<TChunk, TDimension> chunkFactory, LayerRegistry<TDimension> layerRegistry)
+		public ChunkLayer(int chunkSize, IChunkFactory<TChunk, TDimension> chunkFactory, IDistanceComparer<TDimension> distanceComparer, LayerRegistry<TDimension> layerRegistry)
 		{
 			_chunkFactory = chunkFactory;
 			_layerRegistry = layerRegistry;
+			_distanceComparer = distanceComparer;
 			ChunkSize = chunkSize;
 		}
 
@@ -96,11 +98,15 @@ namespace EliotByte.InfinityGen
 		}
 
 		private readonly List<TDimension> _processedPositions = new();
+		private readonly List<TDimension> _sortedPositionToProcess = new();
 
-		public void ProcessRequests()
+		public void ProcessRequests(TDimension processingCenter)
 		{
-			// TODO: Sort chunks by distance
-			foreach (var position in _positionsToProcess)
+			_distanceComparer.Target = processingCenter;
+			_sortedPositionToProcess.AddRange(_positionsToProcess);
+			_sortedPositionToProcess.Sort(_distanceComparer);
+
+			foreach (var position in _sortedPositionToProcess)
 			{
 				var handle = _chunkHandles[position];
 
@@ -135,6 +141,8 @@ namespace EliotByte.InfinityGen
 					handle.Chunk.Dependency.Unload(_layerRegistry);
 				}
 			}
+
+			_sortedPositionToProcess.Clear();
 
 			foreach (var position in _processedPositions)
 			{

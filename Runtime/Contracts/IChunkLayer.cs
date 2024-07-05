@@ -10,7 +10,7 @@
 
 		void RequestUnload(object requestSource, TDimension position);
 
-		void ProcessRequests();
+		void ProcessRequests(TDimension processingCenter);
 	}
 
 	public interface IChunkLayer<TChunk, TDimension> : IChunkLayer<TDimension>

@@ -5,18 +5,24 @@ namespace EliotByte.InfinityGen
 {
 	public class LayerRegistry<TDimension>
 	{
-		protected Dictionary<Type, IChunkLayer<TDimension>> LayersByChunkType { get; } = new();
+		private readonly Dictionary<Type, IChunkLayer<TDimension>> _layersByChunkType = new();
+		private readonly IDistanceComparer<TDimension> _distanceComparer;
 
-		public IEnumerable<IChunkLayer<TDimension>> AllLayers => LayersByChunkType.Values;
+		public LayerRegistry(IDistanceComparer<TDimension> distanceComparer)
+		{
+			_distanceComparer = distanceComparer;
+		}
+
+		public IEnumerable<IChunkLayer<TDimension>> AllLayers => _layersByChunkType.Values;
 
 		public void Register<TChunk>(int chunkSize, IChunkFactory<TChunk, TDimension> factory) where TChunk : IChunk<TDimension>
 		{
-			LayersByChunkType.Add(typeof(TChunk), new ChunkLayer<TChunk, TDimension>(chunkSize, factory, this));
+			_layersByChunkType.Add(typeof(TChunk), new ChunkLayer<TChunk, TDimension>(chunkSize, factory, _distanceComparer, this));
 		}
 
 		public IChunkLayer<TChunk, TDimension> Get<TChunk>() where TChunk : IChunk<TDimension>
 		{
-			return (IChunkLayer<TChunk, TDimension>)LayersByChunkType[typeof(TChunk)];
+			return (IChunkLayer<TChunk, TDimension>)_layersByChunkType[typeof(TChunk)];
 		}
 	}
 }

@@ -7,7 +7,7 @@ namespace EliotByte.InfinityGen
 	{
 		private readonly HashSet<IChunkViewport> _viewports = new();
 
-		public LayerRegistry<Vector2Int> LayerRegistry { get; } = new();
+		public LayerRegistry<Vector2Int> LayerRegistry { get; } = new(new DistanceComparer2D());
 
 		public void RegisterLayer<TChunk>(int chunkSize, IChunkFactory2D<TChunk> chunkFactory) where TChunk : IChunk2D
 		{
@@ -30,7 +30,7 @@ namespace EliotByte.InfinityGen
 				foreach (IChunkLayer<Vector2Int> layer in LayerRegistry.AllLayers)
 				{
 					layer.RequestLoad(viewport, new Circle(viewport.Position, viewport.Radius));
-					layer.ProcessRequests();
+					layer.ProcessRequests(new Vector2Int((int)viewport.Position.x, (int)viewport.Position.y));
 				}
 			}
 		}
