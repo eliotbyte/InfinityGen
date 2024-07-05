@@ -98,15 +98,12 @@ namespace EliotByte.InfinityGen
 		}
 
 		private readonly List<TDimension> _processedPositions = new();
-		private readonly List<TDimension> _sortedPositionToProcess = new();
+		private readonly List<TDimension> _positionToLoad = new();
+		private readonly List<TDimension> _positionToUnload = new();
 
 		public void ProcessRequests(TDimension processingCenter)
 		{
-			_distanceComparer.Target = processingCenter;
-			_sortedPositionToProcess.AddRange(_positionsToProcess);
-			_sortedPositionToProcess.Sort(_distanceComparer);
-
-			foreach (var position in _sortedPositionToProcess)
+			foreach (var position in _positionsToProcess)
 			{
 				var handle = _chunkHandles[position];
 
@@ -116,9 +113,11 @@ namespace EliotByte.InfinityGen
 				}
 
 				bool needLoad = handle.LoadRequests.Count > 0;
+				bool needUnload = !needLoad;
 				bool isLoaded = handle.Chunk.Status == LoadStatus.Loaded;
+				bool isUnloaded = handle.Chunk.Status == LoadStatus.Unloaded;
 
-				if (needLoad && isLoaded)
+				if (needLoad && isLoaded || needUnload && isUnloaded)
 				{
 					_processedPositions.Add(position);
 					continue;
@@ -126,23 +125,44 @@ namespace EliotByte.InfinityGen
 
 				if (needLoad)
 				{
-					if (!handle.Chunk.Dependency.IsLoaded(_layerRegistry))
-					{
-						handle.Chunk.Dependency.Load(_layerRegistry);
-					}
-					else
-					{
-						handle.Chunk.Load();
-					}
+					_positionToLoad.Add(position);
 				}
 				else
 				{
-					handle.Chunk.Unload();
-					handle.Chunk.Dependency.Unload(_layerRegistry);
+					_positionToUnload.Add(position);
 				}
 			}
 
-			_sortedPositionToProcess.Clear();
+			_distanceComparer.Target = processingCenter;
+			_distanceComparer.SortingSign = 1;
+			_positionToLoad.Sort(_distanceComparer); // Load by closeness
+			_distanceComparer.SortingSign = -1;
+			_positionToUnload.Sort(_distanceComparer); // Unload by remoteness
+
+			foreach (var position in _positionToLoad)
+			{
+				var handle = _chunkHandles[position];
+
+				if (!handle.Chunk.Dependency.IsLoaded(_layerRegistry))
+				{
+					handle.Chunk.Dependency.Load(_layerRegistry);
+				}
+				else
+				{
+					handle.Chunk.Load();
+				}
+			}
+
+			foreach (var position in _positionToUnload)
+			{
+				var handle = _chunkHandles[position];
+
+				handle.Chunk.Unload();
+				handle.Chunk.Dependency.Unload(_layerRegistry);
+			}
+
+			_positionToLoad.Clear();
+			_positionToUnload.Clear();
 
 			foreach (var position in _processedPositions)
 			{
@@ -156,7 +176,6 @@ namespace EliotByte.InfinityGen
 					_chunkHandles.Remove(position);
 				}
 			}
-
 			_processedPositions.Clear();
 		}
 	}
