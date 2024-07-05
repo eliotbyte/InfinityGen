@@ -26,7 +26,7 @@ namespace EliotByte.InfinityGen.Tests
 
 		public LoadStatus Status { get; private set; }
 
-		public IDependency2D Dependency { get; }
+		public IDependency<Vector2Int> Dependency { get; }
 
 		public List<PointEntity> Points { get; } = new();
 

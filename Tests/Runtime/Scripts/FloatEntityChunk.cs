@@ -23,6 +23,8 @@ namespace EliotByte.InfinityGen.Tests
 
 		public LoadStatus Status { get; private set; }
 
+		public IDependency<Vector2Int> Dependency => IDependency<Vector2Int>.Empty;
+
 		public void Load()
 		{
 			Random random = new(_seed);

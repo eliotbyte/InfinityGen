@@ -64,6 +64,12 @@ namespace EliotByte.InfinityGen
 			ProcessIfNeeded(position, handle);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public TChunk GetChunk(TDimension position)
+		{
+			return _chunkHandles[position].Chunk;
+		}
+
 		private void ProcessIfNeeded(TDimension position, ChunkHandle handle)
 		{
 			bool needLoad = handle.LoadRequests.Count > 0;
@@ -85,12 +91,6 @@ namespace EliotByte.InfinityGen
 					_chunkHandles.Remove(position);
 				}
 			}
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public TChunk GetChunk(TDimension position)
-		{
-			return _chunkHandles[position].Chunk;
 		}
 
 		private readonly List<TDimension> _processedPositions = new();
