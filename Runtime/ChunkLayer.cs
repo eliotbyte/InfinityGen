@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace EliotByte.InfinityGen
 {
-	public class MultiDimensionalChunkLayer<TChunk, TChunkPosition> : IChunkLayer<TChunkPosition> where TChunk : IChunk
+	public class ChunkLayer<TChunk, TDimension> : IChunkLayer<TChunk, TDimension> where TChunk : IChunk<TDimension>
 	{
 		private struct ChunkHandle
 		{
@@ -17,14 +17,14 @@ namespace EliotByte.InfinityGen
 			}
 		}
 
-		private readonly LayerRegistry2D _layerRegistry;
-		private readonly IChunkFactory<TChunk, TChunkPosition> _chunkFactory;
-		private readonly Dictionary<TChunkPosition, ChunkHandle> _chunkHandles = new();
-		private readonly HashSet<TChunkPosition> _positionsToProcess = new();
+		private readonly LayerRegistry<TDimension> _layerRegistry;
+		private readonly IChunkFactory<TChunk, TDimension> _chunkFactory;
+		private readonly Dictionary<TDimension, ChunkHandle> _chunkHandles = new();
+		private readonly HashSet<TDimension> _positionsToProcess = new();
 
 		public float ChunkSize { get; }
 
-		public MultiDimensionalChunkLayer(int chunkSize, IChunkFactory<TChunk, TChunkPosition> chunkFactory, LayerRegistry2D layerRegistry)
+		public ChunkLayer(int chunkSize, IChunkFactory<TChunk, TDimension> chunkFactory, LayerRegistry<TDimension> layerRegistry)
 		{
 			_chunkFactory = chunkFactory;
 			_layerRegistry = layerRegistry;
@@ -32,13 +32,13 @@ namespace EliotByte.InfinityGen
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool IsLoaded(TChunkPosition position)
+		public bool IsLoaded(TDimension position)
 		{
 			return _chunkHandles.TryGetValue(position, out var handle) && handle.Chunk.Status == LoadStatus.Loaded;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void RequestLoad(object requestSource, TChunkPosition position)
+		public void RequestLoad(object requestSource, TDimension position)
 		{
 			if (!_chunkHandles.TryGetValue(position, out var handle))
 			{
@@ -52,7 +52,7 @@ namespace EliotByte.InfinityGen
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void RequestUnload(object requestSource, TChunkPosition position)
+		public void RequestUnload(object requestSource, TDimension position)
 		{
 			if (!_chunkHandles.TryGetValue(position, out var handle))
 			{
@@ -64,7 +64,7 @@ namespace EliotByte.InfinityGen
 			ProcessIfNeeded(position, handle);
 		}
 
-		private void ProcessIfNeeded(TChunkPosition position, ChunkHandle handle)
+		private void ProcessIfNeeded(TDimension position, ChunkHandle handle)
 		{
 			bool needLoad = handle.LoadRequests.Count > 0;
 			bool needUnload = !needLoad;
@@ -88,12 +88,12 @@ namespace EliotByte.InfinityGen
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public TChunk GetChunk(TChunkPosition position)
+		public TChunk GetChunk(TDimension position)
 		{
 			return _chunkHandles[position].Chunk;
 		}
 
-		private readonly List<TChunkPosition> _processedPositions = new();
+		private readonly List<TDimension> _processedPositions = new();
 
 		public void ProcessRequests()
 		{

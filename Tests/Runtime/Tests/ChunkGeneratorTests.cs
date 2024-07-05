@@ -8,8 +8,8 @@ namespace EliotByte.InfinityGen.Tests
 	{
 		[Test]
 		public void TestChunkCreation()
-        {
-            int seed = 0;
+		{
+			int seed = 0;
 			ChunkGenerator2D chunkGenerator2D = new();
 
 			chunkGenerator2D.RegisterLayer(7, new PointEntityChunk.Factory(5, seed));

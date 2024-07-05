@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace EliotByte.InfinityGen
@@ -8,9 +7,9 @@ namespace EliotByte.InfinityGen
 	{
 		private readonly HashSet<IChunkViewport> _viewports = new();
 
-        public LayerRegistry2D LayerRegistry { get; } = new();
+		public LayerRegistry2D LayerRegistry { get; } = new();
 
-        public void RegisterLayer<TChunk>(int chunkSize, IChunkFactory2D<TChunk> chunkFactory) where TChunk : IChunk
+		public void RegisterLayer<TChunk>(int chunkSize, IChunkFactory2D<TChunk> chunkFactory) where TChunk : IChunk2D
 		{
 			LayerRegistry.Register(chunkSize, chunkFactory);
 		}

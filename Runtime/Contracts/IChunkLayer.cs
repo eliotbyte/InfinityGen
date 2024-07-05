@@ -1,17 +1,20 @@
-﻿using UnityEngine;
-
-namespace EliotByte.InfinityGen
+﻿namespace EliotByte.InfinityGen
 {
-	public interface IChunkLayer<TChunkPosition>
+	public interface IChunkLayer<TDimension>
 	{
 		float ChunkSize { get; }
 
-		bool IsLoaded(TChunkPosition position);
+		bool IsLoaded(TDimension position);
 
-		void RequestLoad(object requestSource, TChunkPosition position);
+		void RequestLoad(object requestSource, TDimension position);
 
-		void RequestUnload(object requestSource, TChunkPosition position);
+		void RequestUnload(object requestSource, TDimension position);
 
 		void ProcessRequests();
+	}
+
+	public interface IChunkLayer<TChunk, TDimension> : IChunkLayer<TDimension>
+	{
+		TChunk GetChunk(TDimension position);
 	}
 }

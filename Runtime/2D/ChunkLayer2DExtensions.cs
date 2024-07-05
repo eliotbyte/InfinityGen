@@ -59,7 +59,7 @@ namespace EliotByte.InfinityGen
 			}
 		}
 
-		public static IEnumerable<TChunk> GetChunks<TChunk>(this ChunkLayer2D<TChunk> chunkLayer, Rectangle area) where TChunk : IChunk
+		public static IEnumerable<TChunk> GetChunks<TChunk>(this IChunkLayer<TChunk, Vector2Int> chunkLayer, Rectangle area) where TChunk : IChunk2D
 		{
 			foreach (Vector2Int position in GetChunksInArea(chunkLayer.ChunkSize, area))
 			{

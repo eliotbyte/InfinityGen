@@ -3,25 +3,25 @@ using System.Linq;
 
 namespace EliotByte.InfinityGen
 {
-	public class Dependencies : IDependency
+	public class Dependencies<TDimension> : IDependency<TDimension>
 	{
-		private readonly List<IDependency> _dependencies;
+		private readonly List<IDependency<TDimension>> _dependencies;
 
-		public Dependencies() : this(Enumerable.Empty<IDependency>())
+		public Dependencies() : this(Enumerable.Empty<IDependency<TDimension>>())
 		{
 		}
 
-		public Dependencies(IEnumerable<IDependency> dependencies)
+		public Dependencies(IEnumerable<IDependency<TDimension>> dependencies)
 		{
-			_dependencies = new List<IDependency>(dependencies);
+			_dependencies = new List<IDependency<TDimension>>(dependencies);
 		}
 
-		public void Add(IDependency dependency)
+		public void Add(IDependency<TDimension> dependency)
 		{
 			_dependencies.Add(dependency);
 		}
 
-		public bool IsLoaded(LayerRegistry2D layerRegistry)
+		public bool IsLoaded(LayerRegistry<TDimension> layerRegistry)
 		{
 			foreach (var dependency in _dependencies)
 			{
@@ -33,7 +33,7 @@ namespace EliotByte.InfinityGen
 			return true;
 		}
 
-		public void Load(LayerRegistry2D layerRegistry)
+		public void Load(LayerRegistry<TDimension> layerRegistry)
 		{
 			foreach (var dependency in _dependencies)
 			{
@@ -41,7 +41,7 @@ namespace EliotByte.InfinityGen
 			}
 		}
 
-		public void Unload(LayerRegistry2D layerRegistry)
+		public void Unload(LayerRegistry<TDimension> layerRegistry)
 		{
 			foreach (var dependency in _dependencies)
 			{

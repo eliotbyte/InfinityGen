@@ -1,12 +1,10 @@
-using System;
-
 namespace EliotByte.InfinityGen
 {
-	public interface IChunk
+	public interface IChunk<TDimension>
 	{
 		LoadStatus Status { get; }
 
-		IDependency Dependency => EmptyDependency.Instance;
+		IDependency<TDimension> Dependency => EmptyDependency<TDimension>.Instance;
 
 		void Load();
 
