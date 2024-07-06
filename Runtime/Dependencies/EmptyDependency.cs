@@ -4,11 +4,11 @@
 	{
 		public bool IsLoaded(LayerRegistry<TDimension> layerRegistry) => true;
 
-		public void Load(LayerRegistry<TDimension> layerRegistry)
+		public void RequestLoad(LayerRegistry<TDimension> layerRegistry)
 		{
 		}
 
-		public void Unload(LayerRegistry<TDimension> layerRegistry)
+		public void RequestUnload(LayerRegistry<TDimension> layerRegistry)
 		{
 		}
 	}

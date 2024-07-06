@@ -33,19 +33,19 @@ namespace EliotByte.InfinityGen
 			return true;
 		}
 
-		public void Load(LayerRegistry<TDimension> layerRegistry)
+		public void RequestLoad(LayerRegistry<TDimension> layerRegistry)
 		{
 			foreach (var dependency in _dependencies)
 			{
-				dependency.Load(layerRegistry);
+				dependency.RequestLoad(layerRegistry);
 			}
 		}
 
-		public void Unload(LayerRegistry<TDimension> layerRegistry)
+		public void RequestUnload(LayerRegistry<TDimension> layerRegistry)
 		{
 			foreach (var dependency in _dependencies)
 			{
-				dependency.Unload(layerRegistry);
+				dependency.RequestUnload(layerRegistry);
 			}
 		}
 	}

@@ -6,16 +6,10 @@ namespace EliotByte.InfinityGen
 {
 	public class ChunkLayer<TChunk, TDimension> : IChunkLayer<TChunk, TDimension> where TChunk : IChunk<TDimension>
 	{
-		private struct ChunkHandle
+		private class ChunkHandle
 		{
 			public TChunk Chunk;
-			public HashSet<object> LoadRequests;
-
-			public ChunkHandle(TChunk chunk, HashSet<object> loadRequests)
-			{
-				Chunk = chunk;
-				LoadRequests = loadRequests;
-			}
+			public readonly HashSet<object> LoadRequests = new();
 		}
 
 		private readonly LayerRegistry<TDimension> _layerRegistry;
@@ -24,7 +18,7 @@ namespace EliotByte.InfinityGen
 		private readonly IChunkFactory<TChunk, TDimension> _chunkFactory;
 		private readonly Dictionary<TDimension, ChunkHandle> _chunkHandles = new();
 		private readonly HashSet<TDimension> _positionsToProcess = new();
-		private readonly Pool<HashSet<object>> _hashsetPool = new(() => new());
+		private readonly Pool<ChunkHandle> _handlesPool = new(() => new());
 
 		public int ChunkSize { get; }
 
@@ -49,7 +43,8 @@ namespace EliotByte.InfinityGen
 		{
 			if (!_chunkHandles.TryGetValue(position, out var handle))
 			{
-				handle = new(_chunkFactory.Create(position, ChunkSize, _layerRegistry), _hashsetPool.Get());
+				handle = _handlesPool.Get();
+				handle.Chunk = _chunkFactory.Create(position, ChunkSize, _layerRegistry);
 				_chunkHandles.Add(position, handle);
 			}
 
@@ -88,17 +83,9 @@ namespace EliotByte.InfinityGen
 			{
 				_positionsToProcess.Add(position);
 			}
-			else
+			else if (!needUnload)
 			{
 				_positionsToProcess.Remove(position);
-
-				if (handle.Chunk.Status == LoadStatus.Unloaded)
-				{
-					handle.Chunk.Dependency.Unload(_layerRegistry);
-					_hashsetPool.Return(handle.LoadRequests);
-					_chunkFactory.Dispose(handle.Chunk);
-					_chunkHandles.Remove(position);
-				}
 			}
 		}
 
@@ -167,23 +154,22 @@ namespace EliotByte.InfinityGen
 
 				if (!handle.Chunk.Dependency.IsLoaded(_layerRegistry))
 				{
-					handle.Chunk.Dependency.Load(_layerRegistry);
+					handle.Chunk.Dependency.RequestLoad(_layerRegistry);
 				}
 				else
 				{
 					handle.Chunk.Load();
 				}
 			}
+			_positionToLoad.Clear();
 
 			for (var i = 0; i < _positionToUnload.Count && i < processesToUnload; i++)
 			{
 				var handle = _chunkHandles[_positionToUnload[i]];
 
 				handle.Chunk.Unload();
-				handle.Chunk.Dependency.Unload(_layerRegistry);
+				handle.Chunk.Dependency.RequestUnload(_layerRegistry);
 			}
-
-			_positionToLoad.Clear();
 			_positionToUnload.Clear();
 
 			foreach (var position in _processedPositions)
@@ -193,10 +179,10 @@ namespace EliotByte.InfinityGen
 				var handle = _chunkHandles[position];
 				if (handle.Chunk.Status == LoadStatus.Unloaded)
 				{
-					handle.Chunk.Dependency.Unload(_layerRegistry);
-					_hashsetPool.Return(handle.LoadRequests);
+					handle.Chunk.Dependency.RequestUnload(_layerRegistry);
 					_chunkFactory.Dispose(handle.Chunk);
 					_chunkHandles.Remove(position);
+					_handlesPool.Return(handle);
 				}
 			}
 			_processedPositions.Clear();

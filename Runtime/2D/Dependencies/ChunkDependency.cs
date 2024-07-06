@@ -16,12 +16,12 @@ namespace EliotByte.InfinityGen
 			return layerRegistry.Get<TChunk>().IsLoaded(Position);
 		}
 
-		public void Load(LayerRegistry<Vector2Int> layerRegistry)
+		public void RequestLoad(LayerRegistry<Vector2Int> layerRegistry)
 		{
 			layerRegistry.Get<TChunk>().RequestLoad(this, Position);
 		}
 
-		public void Unload(LayerRegistry<Vector2Int> layerRegistry)
+		public void RequestUnload(LayerRegistry<Vector2Int> layerRegistry)
 		{
 			layerRegistry.Get<TChunk>().RequestUnload(this, Position);
 		}
