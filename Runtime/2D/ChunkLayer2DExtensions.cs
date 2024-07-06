@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace EliotByte.InfinityGen
@@ -61,17 +62,21 @@ namespace EliotByte.InfinityGen
 
 		public static IEnumerable<TChunk> GetChunks<TChunk>(this IChunkLayer<TChunk, Vector2Int> chunkLayer, Rectangle area) where TChunk : IChunk2D
 		{
-			foreach (Vector2Int position in GetChunksInArea(chunkLayer.ChunkSize, area))
+			var chunkPositions = GetChunksInArea(chunkLayer.ChunkSize, area);
+			TChunk[] chunks = new TChunk[chunkPositions.Length];
+
+			for (var i = 0; i < chunkPositions.Length; i++)
 			{
-				yield return chunkLayer.GetChunk(position);
+				chunks[i] = chunkLayer.GetChunk(chunkPositions[i]);
 			}
+
+			return chunks;
 		}
 
-		private static Vector2Int[] GetChunksInArea(float chunkSize, Rectangle area)
-		{
-			// TODO: Add caching
-			List<Vector2Int> chunkPositions = new();
+		private static Vector2Int[] _positionsBuffer = new Vector2Int[200 * 200];
 
+		private static Span<Vector2Int> GetChunksInArea(float chunkSize, Rectangle area)
+		{
 			float xEnd = area.MaxX;
 			float yEnd = area.MaxY;
 
@@ -80,37 +85,40 @@ namespace EliotByte.InfinityGen
 			int minChunkY = Mathf.FloorToInt(area.MinY / chunkSize);
 			int maxChunkY = Mathf.FloorToInt((yEnd - 1) / chunkSize);
 
+			int amount = 0;
 			for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++)
 			for (int chunkY = minChunkY; chunkY <= maxChunkY; chunkY++)
-				chunkPositions.Add(new Vector2Int(chunkX, chunkY));
+			{
+				_positionsBuffer[amount++] = new(chunkX, chunkY);
+			}
 
-			return chunkPositions.ToArray();
+			return _positionsBuffer.AsSpan(0, amount);
 		}
 
-		private static Vector2Int[] GetChunksInRadius(float chunkSize, Vector2 userPosition, float radius)
+		private static Span<Vector2Int> GetChunksInRadius(float chunkSize, Vector2 userPosition, float radius)
 		{
 			float playerX = userPosition.x;
 			float playerY = userPosition.y;
-
-			// TODO: Add caching
-			List<Vector2Int> chunks = new();
 
 			int minChunkX = Mathf.FloorToInt((playerX - radius) / chunkSize);
 			int maxChunkX = Mathf.FloorToInt((playerX + radius) / chunkSize);
 			int minChunkY = Mathf.FloorToInt((playerY - radius) / chunkSize);
 			int maxChunkY = Mathf.FloorToInt((playerY + radius) / chunkSize);
 
+			int amount = 0;
 			for (int x = minChunkX; x <= maxChunkX; x++)
 			for (int y = minChunkY; y <= maxChunkY; y++)
 				if (IsChunkInRadius(x, y, chunkSize, userPosition, radius))
-					chunks.Add(new Vector2Int(x, y));
+				{
+					_positionsBuffer[amount++] = new(x, y);
+				}
 
-			return chunks.ToArray();
+			return _positionsBuffer.AsSpan(0, amount);
 		}
 
 		private static bool IsChunkInRadius(int chunkX, int chunkY, float chunkSize, Vector2 userPosition, float radius)
 		{
-			Vector2[] chunkCorners =
+			Span<Vector2> chunkCorners = stackalloc Vector2[]
 			{
 				new(chunkX * chunkSize, chunkY * chunkSize),
 				new((chunkX + 1) * chunkSize, chunkY * chunkSize),
