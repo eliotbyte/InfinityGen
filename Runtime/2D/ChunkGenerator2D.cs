@@ -6,7 +6,7 @@ namespace EliotByte.InfinityGen
 	public class ChunkGenerator2D
 	{
 		private readonly HashSet<IChunkViewport> _viewports = new();
-		private readonly ConePositionsComparer2D _coneComparer = new();
+		private readonly DistanceComparer2D _distanceComparer = new();
 
 		public LayerRegistry<Vector2Int> LayerRegistry { get; } = new();
 
@@ -32,9 +32,9 @@ namespace EliotByte.InfinityGen
 
 					if (viewport.IsActive)
 					{
-						comparer = _coneComparer;
-						_coneComparer.Target = viewport.Position;
-						_coneComparer.ChunkSize = layer.ChunkSize;
+						comparer = _distanceComparer;
+						_distanceComparer.Target = viewport.Position;
+						_distanceComparer.ChunkSize = layer.ChunkSize;
 						layer.RequestLoad(viewport, new Circle(viewport.Position, viewport.Radius));
 					}
 				}

@@ -2,7 +2,7 @@
 
 namespace EliotByte.InfinityGen
 {
-	public class ConePositionsComparer2D : IPositionsComparer<Vector2Int>
+	public class DistanceComparer2D : IPositionsComparer<Vector2Int>
 	{
 		private int SortingSign { get; set; } = 1;
 
