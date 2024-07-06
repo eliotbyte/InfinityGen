@@ -3,7 +3,8 @@ namespace EliotByte.InfinityGen
 	public enum LoadStatus
 	{
 		Unloaded,
-		Processing,
+		Unloading,
+		Loading,
 		Loaded,
 	}
 }

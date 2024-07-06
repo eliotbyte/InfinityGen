@@ -31,7 +31,7 @@ namespace EliotByte.InfinityGen
 
 					if (viewport.IsActive)
 					{
-						processingCenter = new((int)viewport.Position.x, (int)viewport.Position.y);
+						processingCenter = Vector2Int.RoundToInt(viewport.Position / layer.ChunkSize);
 						layer.RequestLoad(viewport, new Circle(viewport.Position, viewport.Radius));
 					}
 				}

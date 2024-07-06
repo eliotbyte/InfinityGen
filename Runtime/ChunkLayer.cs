@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace EliotByte.InfinityGen
@@ -18,6 +19,8 @@ namespace EliotByte.InfinityGen
 		}
 
 		private readonly LayerRegistry<TDimension> _layerRegistry;
+		private readonly int _processesLimit;
+		private readonly float _loadCoefficient;
 		private readonly IDistanceComparer<TDimension> _distanceComparer;
 		private readonly IChunkFactory<TChunk, TDimension> _chunkFactory;
 		private readonly Dictionary<TDimension, ChunkHandle> _chunkHandles = new();
@@ -26,10 +29,13 @@ namespace EliotByte.InfinityGen
 
 		public int ChunkSize { get; }
 
-		public ChunkLayer(int chunkSize, IChunkFactory<TChunk, TDimension> chunkFactory, IDistanceComparer<TDimension> distanceComparer, LayerRegistry<TDimension> layerRegistry)
+		public ChunkLayer(int chunkSize, IChunkFactory<TChunk, TDimension> chunkFactory, IDistanceComparer<TDimension> distanceComparer, LayerRegistry<TDimension> layerRegistry,
+			int processesLimit = 12, float loadCoefficient = 3f)
 		{
 			_chunkFactory = chunkFactory;
 			_layerRegistry = layerRegistry;
+			_processesLimit = processesLimit;
+			_loadCoefficient = loadCoefficient;
 			_distanceComparer = distanceComparer;
 			ChunkSize = chunkSize;
 		}
@@ -103,12 +109,15 @@ namespace EliotByte.InfinityGen
 
 		public void ProcessRequests(TDimension processingCenter)
 		{
+			int currentlyProcessing = 0;
+
 			foreach (var position in _positionsToProcess)
 			{
 				var handle = _chunkHandles[position];
 
-				if (handle.Chunk.Status == LoadStatus.Processing)
+				if (handle.Chunk.Status == LoadStatus.Loading || handle.Chunk.Status == LoadStatus.Unloading)
 				{
+					currentlyProcessing += 1;
 					continue;
 				}
 
@@ -135,13 +144,28 @@ namespace EliotByte.InfinityGen
 
 			_distanceComparer.Target = processingCenter;
 			_distanceComparer.SortingSign = 1;
-			_positionToLoad.Sort(_distanceComparer); // Load by closeness
+			_positionToLoad.Sort(_distanceComparer); // Load first by closeness
 			_distanceComparer.SortingSign = -1;
-			_positionToUnload.Sort(_distanceComparer); // Unload by remoteness
+			_positionToUnload.Sort(_distanceComparer); // Unload first by remoteness
 
-			foreach (var position in _positionToLoad)
+			// Distribute available processes
+			int availableProcesses = Math.Max(0, _processesLimit - currentlyProcessing);
+			int processesToUnload = availableProcesses / 2;
+			int processesToLoad = availableProcesses - processesToUnload;
+			float loadBalance = _positionToLoad.Count * _loadCoefficient - _positionToUnload.Count;
+			if (loadBalance < 0)
 			{
-				var handle = _chunkHandles[position];
+				(processesToUnload, processesToLoad) = (processesToLoad, processesToUnload);
+			}
+
+			int unusedLoads = Math.Max(0, processesToLoad - _positionToLoad.Count);
+			int unusedUnloads = Math.Max(0, processesToUnload - _positionToUnload.Count);
+			processesToLoad += unusedUnloads;
+			processesToUnload += unusedLoads;
+
+			for (var i = 0; i < _positionToLoad.Count && i < processesToLoad; i++)
+			{
+				var handle = _chunkHandles[_positionToLoad[i]];
 
 				if (!handle.Chunk.Dependency.IsLoaded(_layerRegistry))
 				{
@@ -153,9 +177,9 @@ namespace EliotByte.InfinityGen
 				}
 			}
 
-			foreach (var position in _positionToUnload)
+			for (var i = 0; i < _positionToUnload.Count && i < processesToUnload; i++)
 			{
-				var handle = _chunkHandles[position];
+				var handle = _chunkHandles[_positionToUnload[i]];
 
 				handle.Chunk.Unload();
 				handle.Chunk.Dependency.Unload(_layerRegistry);

@@ -33,7 +33,7 @@ namespace EliotByte.InfinityGen.Tests
 		public void Load()
 		{
 			Random random = new(_seed);
-			Status = LoadStatus.Processing;
+			Status = LoadStatus.Loading;
 
 			var floatsAround = _layerRegistry.Get<FloatEntityChunk>()
 				.GetChunks(_area)
@@ -51,17 +51,15 @@ namespace EliotByte.InfinityGen.Tests
 
 		public void Unload()
 		{
-			Status = LoadStatus.Processing;
+			Status = LoadStatus.Unloading;
 
 			Points.Clear();
 
-			Status = LoadStatus.Loaded;
+			Status = LoadStatus.Unloaded;
 		}
 
 		public class Factory : IChunkFactory2D<PointEntityChunk>
 		{
-			
-			
 			private readonly int _count;
 			private readonly int _seed;
 
