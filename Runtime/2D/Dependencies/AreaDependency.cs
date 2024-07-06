@@ -4,7 +4,7 @@ namespace EliotByte.InfinityGen
 {
 	public class AreaDependency<TChunk> : IDependency2D where TChunk : IChunk2D
 	{
-		public AreaDependency(Rectangle area)
+		public AreaDependency(Rectangle area = default)
 		{
 			Area = area;
 		}

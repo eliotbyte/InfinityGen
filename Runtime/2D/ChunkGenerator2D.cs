@@ -6,8 +6,9 @@ namespace EliotByte.InfinityGen
 	public class ChunkGenerator2D
 	{
 		private readonly HashSet<IChunkViewport> _viewports = new();
+		private readonly ConePositionsComparer2D _coneComparer = new();
 
-		public LayerRegistry<Vector2Int> LayerRegistry { get; } = new(new DistanceComparer2D());
+		public LayerRegistry<Vector2Int> LayerRegistry { get; } = new();
 
 		public void RegisterLayer<TChunk>(int chunkSize, IChunkFactory2D<TChunk> chunkFactory) where TChunk : IChunk2D
 		{
@@ -23,7 +24,7 @@ namespace EliotByte.InfinityGen
 		{
 			foreach (IChunkLayer<Vector2Int> layer in LayerRegistry.AllLayers)
 			{
-				Vector2Int processingCenter = Vector2Int.zero;
+				IPositionsComparer<Vector2Int> comparer = RandomComparer<Vector2Int>.Instance;
 
 				foreach (IChunkViewport viewport in _viewports)
 				{
@@ -31,12 +32,14 @@ namespace EliotByte.InfinityGen
 
 					if (viewport.IsActive)
 					{
-						processingCenter = Vector2Int.RoundToInt(viewport.Position / layer.ChunkSize);
+						comparer = _coneComparer;
+						_coneComparer.Target = viewport.Position;
+						_coneComparer.ChunkSize = layer.ChunkSize;
 						layer.RequestLoad(viewport, new Circle(viewport.Position, viewport.Radius));
 					}
 				}
 
-				layer.ProcessRequests(processingCenter);
+				layer.ProcessRequests(comparer);
 			}
 		}
 	}

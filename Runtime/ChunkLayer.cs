@@ -21,7 +21,6 @@ namespace EliotByte.InfinityGen
 		private readonly LayerRegistry<TDimension> _layerRegistry;
 		private readonly int _processesLimit;
 		private readonly float _loadCoefficient;
-		private readonly IDistanceComparer<TDimension> _distanceComparer;
 		private readonly IChunkFactory<TChunk, TDimension> _chunkFactory;
 		private readonly Dictionary<TDimension, ChunkHandle> _chunkHandles = new();
 		private readonly HashSet<TDimension> _positionsToProcess = new();
@@ -29,14 +28,13 @@ namespace EliotByte.InfinityGen
 
 		public int ChunkSize { get; }
 
-		public ChunkLayer(int chunkSize, IChunkFactory<TChunk, TDimension> chunkFactory, IDistanceComparer<TDimension> distanceComparer, LayerRegistry<TDimension> layerRegistry,
+		public ChunkLayer(int chunkSize, IChunkFactory<TChunk, TDimension> chunkFactory, LayerRegistry<TDimension> layerRegistry,
 			int processesLimit = 12, float loadCoefficient = 3f)
 		{
 			_chunkFactory = chunkFactory;
 			_layerRegistry = layerRegistry;
 			_processesLimit = processesLimit;
 			_loadCoefficient = loadCoefficient;
-			_distanceComparer = distanceComparer;
 			ChunkSize = chunkSize;
 		}
 
@@ -108,7 +106,7 @@ namespace EliotByte.InfinityGen
 		private readonly List<TDimension> _positionToLoad = new();
 		private readonly List<TDimension> _positionToUnload = new();
 
-		public void ProcessRequests(TDimension processingCenter)
+		public void ProcessRequests(IPositionsComparer<TDimension> comparer)
 		{
 			int currentlyProcessing = 0;
 
@@ -143,11 +141,10 @@ namespace EliotByte.InfinityGen
 				}
 			}
 
-			_distanceComparer.Target = processingCenter;
-			_distanceComparer.SortingSign = 1;
-			_positionToLoad.Sort(_distanceComparer); // Load first by closeness
-			_distanceComparer.SortingSign = -1;
-			_positionToUnload.Sort(_distanceComparer); // Unload first by remoteness
+			comparer.Order = SortingOrder.Ascending;
+			_positionToLoad.Sort(comparer); // Load in ascending order
+			comparer.Order = SortingOrder.Descending;
+			_positionToUnload.Sort(comparer); // Unload in descending order
 
 			// Distribute available processes
 			int availableProcesses = Math.Max(0, _processesLimit - currentlyProcessing);

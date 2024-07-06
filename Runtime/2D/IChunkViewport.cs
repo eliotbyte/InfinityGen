@@ -8,6 +8,8 @@ namespace EliotByte.InfinityGen
 
 		Vector2 Position { get; }
 
+		Vector2 Direction { get; }
+
 		float Radius { get; }
 
 		bool IsActive { get; }

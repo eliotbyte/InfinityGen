@@ -15,7 +15,7 @@ namespace EliotByte.InfinityGen.Tests
 			chunkGenerator2D.RegisterLayer(7, new PointEntityChunk.Factory(5, seed));
 			chunkGenerator2D.RegisterLayer(10, new FloatEntityChunk.Factory(3, seed));
 
-			Viewport viewport = new(Vector2.zero, 5f);
+			Viewport viewport = new(Vector2.zero, Vector2.up, 5f);
 
 			chunkGenerator2D.RegisterViewport(viewport);
 
