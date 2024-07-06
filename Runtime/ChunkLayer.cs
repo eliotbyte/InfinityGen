@@ -96,6 +96,7 @@ namespace EliotByte.InfinityGen
 
 				if (handle.Chunk.Status == LoadStatus.Unloaded)
 				{
+					handle.Chunk.Dependency.Unload(_layerRegistry);
 					_hashsetPool.Return(handle.LoadRequests);
 					_chunkFactory.Dispose(handle.Chunk);
 					_chunkHandles.Remove(position);
@@ -195,6 +196,7 @@ namespace EliotByte.InfinityGen
 				var handle = _chunkHandles[position];
 				if (handle.Chunk.Status == LoadStatus.Unloaded)
 				{
+					handle.Chunk.Dependency.Unload(_layerRegistry);
 					_hashsetPool.Return(handle.LoadRequests);
 					_chunkFactory.Dispose(handle.Chunk);
 					_chunkHandles.Remove(position);
