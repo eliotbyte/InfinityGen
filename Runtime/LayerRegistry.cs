@@ -9,9 +9,9 @@ namespace EliotByte.InfinityGen
 
 		public IEnumerable<IChunkLayer<TDimension>> AllLayers => _layersByChunkType.Values;
 
-		public void Register<TChunk>(int chunkSize, IChunkFactory<TChunk, TDimension> factory) where TChunk : IChunk<TDimension>
+		public void Register<TChunk>(int chunkSize, IChunkFactory<TChunk, TDimension> factory, int processesLimit = 1, float loadCoefficient = 1f) where TChunk : IChunk<TDimension>
 		{
-			_layersByChunkType.Add(typeof(TChunk), new ChunkLayer<TChunk, TDimension>(chunkSize, factory, this));
+			_layersByChunkType.Add(typeof(TChunk), new ChunkLayer<TChunk, TDimension>(chunkSize, factory, this, processesLimit, loadCoefficient));
 		}
 
 		public IChunkLayer<TChunk, TDimension> Get<TChunk>() where TChunk : IChunk<TDimension>

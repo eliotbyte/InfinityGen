@@ -23,7 +23,7 @@ namespace EliotByte.InfinityGen
 		public int ChunkSize { get; }
 
 		public ChunkLayer(int chunkSize, IChunkFactory<TChunk, TDimension> chunkFactory, LayerRegistry<TDimension> layerRegistry,
-			int processesLimit = 12, float loadCoefficient = 3f)
+			int processesLimit = 1, float loadCoefficient = 1f)
 		{
 			_chunkFactory = chunkFactory;
 			_layerRegistry = layerRegistry;

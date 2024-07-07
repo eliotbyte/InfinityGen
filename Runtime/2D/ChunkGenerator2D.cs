@@ -10,9 +10,9 @@ namespace EliotByte.InfinityGen
 
 		public LayerRegistry<Vector2Int> LayerRegistry { get; } = new();
 
-		public void RegisterLayer<TChunk>(int chunkSize, IChunkFactory2D<TChunk> chunkFactory) where TChunk : IChunk2D
+		public void RegisterLayer<TChunk>(int chunkSize, IChunkFactory2D<TChunk> chunkFactory, int processesLimit = 1, float loadCoefficient = 1f) where TChunk : IChunk2D
 		{
-			LayerRegistry.Register(chunkSize, chunkFactory);
+			LayerRegistry.Register(chunkSize, chunkFactory, processesLimit, loadCoefficient);
 		}
 
 		public void RegisterViewport(IChunkViewport viewport)
