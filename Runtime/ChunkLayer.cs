@@ -83,9 +83,17 @@ namespace EliotByte.InfinityGen
 			{
 				_positionsToProcess.Add(position);
 			}
-			else if (!needUnload)
+			else
 			{
 				_positionsToProcess.Remove(position);
+
+				if (handle.Chunk.Status == LoadStatus.Unloaded)
+				{
+					handle.Chunk.Dependency.RequestUnload(_layerRegistry);
+					_chunkFactory.Dispose(handle.Chunk);
+					_chunkHandles.Remove(position);
+					_handlesPool.Return(handle);
+				}
 			}
 		}
 
@@ -152,11 +160,9 @@ namespace EliotByte.InfinityGen
 			{
 				var handle = _chunkHandles[_positionToLoad[i]];
 
-				if (!handle.Chunk.Dependency.IsLoaded(_layerRegistry))
-				{
-					handle.Chunk.Dependency.RequestLoad(_layerRegistry);
-				}
-				else
+				handle.Chunk.Dependency.RequestLoad(_layerRegistry);
+
+				if (handle.Chunk.Dependency.IsLoaded(_layerRegistry))
 				{
 					handle.Chunk.Load();
 				}
