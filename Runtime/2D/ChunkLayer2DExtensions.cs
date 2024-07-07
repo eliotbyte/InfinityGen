@@ -6,6 +6,8 @@ namespace EliotByte.InfinityGen
 {
 	public static class ChunkLayer2DExtensions
 	{
+		public const float Padding = 0.001f;
+		
 		public static bool IsLoaded(this IChunkLayer<Vector2Int> chunkLayer, Circle circle)
 		{
 			foreach (Vector2Int position in GetChunksInRadius(chunkLayer.ChunkSize, circle.Position, circle.Radius))
@@ -75,15 +77,12 @@ namespace EliotByte.InfinityGen
 
 		private static Vector2Int[] _positionsBuffer = new Vector2Int[200 * 200];
 
-		private static Span<Vector2Int> GetChunksInArea(float chunkSize, Rectangle area)
+		private static Span<Vector2Int> GetChunksInArea(int chunkSize, Rectangle area)
 		{
-			float xEnd = area.MaxX;
-			float yEnd = area.MaxY;
-
-			int minChunkX = Mathf.FloorToInt(area.MinX / chunkSize);
-			int maxChunkX = Mathf.FloorToInt((xEnd - 1) / chunkSize);
-			int minChunkY = Mathf.FloorToInt(area.MinY / chunkSize);
-			int maxChunkY = Mathf.FloorToInt((yEnd - 1) / chunkSize);
+			int minChunkX = Mathf.FloorToInt(area.MinX / chunkSize + Padding);
+			int maxChunkX = Mathf.FloorToInt(area.MaxX / chunkSize - Padding);
+			int minChunkY = Mathf.FloorToInt(area.MinY / chunkSize + Padding);
+			int maxChunkY = Mathf.FloorToInt(area.MaxY / chunkSize - Padding);
 
 			int amount = 0;
 			for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++)
@@ -100,10 +99,10 @@ namespace EliotByte.InfinityGen
 			float playerX = userPosition.x;
 			float playerY = userPosition.y;
 
-			int minChunkX = Mathf.FloorToInt((playerX - radius) / chunkSize);
-			int maxChunkX = Mathf.FloorToInt((playerX + radius) / chunkSize);
-			int minChunkY = Mathf.FloorToInt((playerY - radius) / chunkSize);
-			int maxChunkY = Mathf.FloorToInt((playerY + radius) / chunkSize);
+			int minChunkX = Mathf.FloorToInt((playerX - radius) / chunkSize + Padding);
+			int maxChunkX = Mathf.FloorToInt((playerX + radius) / chunkSize - Padding);
+			int minChunkY = Mathf.FloorToInt((playerY - radius) / chunkSize + Padding);
+			int maxChunkY = Mathf.FloorToInt((playerY + radius) / chunkSize - Padding);
 
 			int amount = 0;
 			for (int x = minChunkX; x <= maxChunkX; x++)

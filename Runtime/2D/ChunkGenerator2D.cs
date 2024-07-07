@@ -28,14 +28,14 @@ namespace EliotByte.InfinityGen
 
 				foreach (IChunkViewport viewport in _viewports)
 				{
-					layer.RequestUnload(viewport, new Rectangle(viewport.PreviousPosition, viewport.Radius, viewport.Radius));
+					layer.RequestUnload(viewport, new Circle(viewport.PreviousPosition, viewport.Radius));
 
 					if (viewport.IsActive)
 					{
 						comparer = _comparer;
 						_comparer.Target = viewport.Position;
 						_comparer.ChunkSize = layer.ChunkSize;
-						layer.RequestLoad(viewport, new Rectangle(viewport.Position, viewport.Radius, viewport.Radius));
+						layer.RequestLoad(viewport, new Circle(viewport.Position, viewport.Radius));
 					}
 				}
 
