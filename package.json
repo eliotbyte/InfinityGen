@@ -1,6 +1,6 @@
 {
   "name": "eliotbyte.infinitygen",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "displayName": "InfinityGen",
   "unity": "2021.2",
   "description": "Procedural layerer generator.",

@@ -79,21 +79,10 @@ namespace EliotByte.InfinityGen
 			bool isLoaded = handle.Chunk.Status == LoadStatus.Loaded;
 			bool isUnloaded = handle.Chunk.Status == LoadStatus.Unloaded;
 
+			// TODO: Remove positions to process if not needed
 			if (needLoad && !isLoaded || needUnload && !isUnloaded)
 			{
 				_positionsToProcess.Add(position);
-			}
-			else
-			{
-				_positionsToProcess.Remove(position);
-
-				if (handle.Chunk.Status == LoadStatus.Unloaded)
-				{
-					handle.Chunk.Dependency.RequestUnload(_layerRegistry);
-					_chunkFactory.Dispose(handle.Chunk);
-					_chunkHandles.Remove(position);
-					_handlesPool.Return(handle);
-				}
 			}
 		}
 
