@@ -87,10 +87,10 @@ namespace EliotByte.InfinityGen
 		}
 
 		private readonly List<TDimension> _processedPositions = new();
-		private readonly List<TDimension> _positionToLoad = new();
-		private readonly List<TDimension> _positionToUnload = new();
+		private readonly List<(TDimension Position, int Cost)> _positionToLoad = new();
+		private readonly List<(TDimension Position, int Cost)> _positionToUnload = new();
 
-		public void ProcessRequests(IPositionsComparer<TDimension> comparer)
+		public void ProcessRequests(IPositionCost<TDimension> cost)
 		{
 			int currentlyProcessing = 0;
 
@@ -117,18 +117,16 @@ namespace EliotByte.InfinityGen
 
 				if (needLoad)
 				{
-					_positionToLoad.Add(position);
+					_positionToLoad.Add((position, cost.Evaluate(position)));
 				}
 				else
 				{
-					_positionToUnload.Add(position);
+					_positionToUnload.Add((position, cost.Evaluate(position)));
 				}
 			}
 
-			comparer.Order = SortingOrder.Ascending;
-			_positionToLoad.Sort(comparer); // Load in ascending order
-			comparer.Order = SortingOrder.Descending;
-			_positionToUnload.Sort(comparer); // Unload in descending order
+			_positionToLoad.Sort(AscendingComparer.Instance); // Load in ascending order
+			_positionToUnload.Sort(DescendingComparer.Instance); // Unload in descending order
 
 			// Distribute available processes
 			int availableProcesses = Math.Max(0, _processesLimit - currentlyProcessing);
@@ -147,7 +145,7 @@ namespace EliotByte.InfinityGen
 
 			for (var i = 0; i < _positionToLoad.Count && i < processesToLoad; i++)
 			{
-				var handle = _chunkHandles[_positionToLoad[i]];
+				var handle = _chunkHandles[_positionToLoad[i].Position];
 
 				handle.Chunk.Dependency.RequestLoad(_layerRegistry);
 
@@ -160,7 +158,7 @@ namespace EliotByte.InfinityGen
 
 			for (var i = 0; i < _positionToUnload.Count && i < processesToUnload; i++)
 			{
-				var handle = _chunkHandles[_positionToUnload[i]];
+				var handle = _chunkHandles[_positionToUnload[i].Position];
 
 				handle.Chunk.Unload();
 				handle.Chunk.Dependency.RequestUnload(_layerRegistry);
@@ -181,6 +179,26 @@ namespace EliotByte.InfinityGen
 				}
 			}
 			_processedPositions.Clear();
+		}
+
+		private class AscendingComparer : IComparer<(TDimension, int Cost)>
+		{
+			public static AscendingComparer Instance { get; } = new AscendingComparer();
+
+			public int Compare((TDimension, int Cost) x, (TDimension, int Cost) y)
+			{
+				return x.Cost.CompareTo(y.Cost);
+			}
+		}
+
+		private class DescendingComparer : IComparer<(TDimension, int Cost)>
+		{
+			public static DescendingComparer Instance { get; } = new DescendingComparer();
+
+			public int Compare((TDimension, int Cost) x, (TDimension, int Cost) y)
+			{
+				return y.Cost.CompareTo(x.Cost);
+			}
 		}
 	}
 }

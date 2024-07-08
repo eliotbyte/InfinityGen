@@ -10,7 +10,7 @@
 
 		void RequestUnload(object requestSource, TDimension position);
 
-		void ProcessRequests(IPositionsComparer<TDimension> comparer);
+		void ProcessRequests(IPositionCost<TDimension> comparer);
 	}
 
 	public interface IChunkLayer<TChunk, TDimension> : IChunkLayer<TDimension>
