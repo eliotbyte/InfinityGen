@@ -1,13 +1,14 @@
-﻿using UnityEngine;
+﻿using Unity.Mathematics;
+using UnityEngine;
 
 namespace EliotByte.InfinityGen
 {
 	public readonly struct Circle
 	{
-		public Vector2 Position { get; }
+		public float2 Position { get; }
 		public float Radius { get; }
 
-		public Circle(Vector2 position, float radius)
+		public Circle(float2 position, float radius)
 		{
 			if (radius <= 0)
 			{
@@ -18,9 +19,9 @@ namespace EliotByte.InfinityGen
 			Radius = radius;
 		}
 
-		public bool Contains(Vector2 point)
+		public bool Contains(float2 point)
 		{
-			float distanceSquared = (point - Position).sqrMagnitude;
+			float distanceSquared = math.distancesq(point, Position);
 			return distanceSquared < Radius * Radius;
 		}
 	}

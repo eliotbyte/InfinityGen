@@ -2,7 +2,8 @@
     "name": "EliotByte.InfinityGen.Tests",
     "rootNamespace": "",
     "references": [
-        "GUID:6c6beebbb1ac6354bb70fca7fb2d1cab"
+        "GUID:6c6beebbb1ac6354bb70fca7fb2d1cab",
+        "GUID:d8b63aba1907145bea998dd612889d6b"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
